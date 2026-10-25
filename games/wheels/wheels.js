@@ -6,7 +6,7 @@
    The fuel gauge drains as you drive: grab the red fuel tanks to fill it up (and for 100 points), or you
    roll to a stop and start again from the last flag. Points come from coins, fuel tanks, flips, perfect
    landings, big air and boost pads, plus a time bonus at the finish; the best score of every track is kept.
-   The original hypnotic soundtrack is in music.js. */
+   The original hypnotic soundtrack is in music.js, with its own song for each world. */
 (function(){
   "use strict";
   const store = Hub.store;
@@ -216,6 +216,7 @@
       lvl = i; T = buildTrack(LEVELS[i]); time = 0; coins = 0; nitro = 0.5; lastCheck = null; bits = []; score = 0; fuel = 1; outT = 0; shake = 0; bounce = 0; dust = [];
       carDef = CARS.find(c => c.id === W8().car && totalStars() >= c.stars) || CARS[0];
       spawn(null); state = "count"; crashT = 0; clock = 0;
+      music.song(LEVELS[i].world);
       cam.x = car.x; cam.y = car.y; fx.clear();
     }
 
