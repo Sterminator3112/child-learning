@@ -4,8 +4,9 @@
      Show reel     then, if you like, Robo presents every app one by one, full screen: a big spinning icon,
                    what it is, your best and trophies, and a "Try it" button. It moves on by itself (or use
                    ◀ ▶, Space to pause), with chapters to jump to: Learning, then each group of games.
-   Robo can read it all out loud (🔊). On a first visit the home screen offers the tour with a small banner
-   (it never pops up by itself), and the "🎬 Meet the apps" link starts it any time.
+   Robo can read it all out loud (🔊). He is always on the home screen as a small banner (he never pops up by
+   himself): on a first visit he offers the tour, after that the tour or the show reel; ✕ hides him until the
+   next visit. The "🎬 Meet the apps" link at the bottom starts it any time too.
      Tour.start()   the guided tour        Tour.reel(i)   the show reel, from app i */
 (function(){
   "use strict";
@@ -13,6 +14,7 @@
   const SEEN = "lp-tour-seen";   // per device, not per player: a newcomer is new to the whole app
   const seen = () => { try { return localStorage.getItem(SEEN) === "1"; } catch (e) { return true; } };
   const markSeen = () => { try { localStorage.setItem(SEEN, "1"); } catch (e) {} };
+  const esc = t => String(t).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
 
   /* ---------------- Robo's voice ---------------- */
   let voiceOn = true;
@@ -204,15 +206,23 @@
 
   /* ---------------- the way in, on the home screen ---------------- */
   const head = document.querySelector("#homeView .hub-head");
+  // Robo is always on the home screen: a welcome on the first visit, and the tour or the show reel any time after.
+  // ✕ only hides him until the next visit.
   const banner = document.createElement("div");
   banner.className = "tour-banner"; banner.hidden = true;
-  banner.innerHTML = `<span>👋 New here? Let Robo 🤖 show you around!</span><button class="btn small" type="button" data-t="tour">Start the tour</button><button class="tour-banner-x" type="button" aria-label="No thanks">✕</button>`;
   head.after(banner);
+  let closedThisVisit = false;
   banner.onclick = e => {
-    if (e.target.closest("[data-t]")) { banner.hidden = true; start(); }
-    if (e.target.closest(".tour-banner-x")) { markSeen(); banner.hidden = true; }
+    const t = e.target.closest("[data-t]");
+    if (t) { banner.hidden = true; if (t.dataset.t === "reel") reel(0); else start(); }
+    if (e.target.closest(".tour-banner-x")) { closedThisVisit = true; banner.hidden = true; }
   };
-  function showBanner(){ banner.hidden = seen(); }
+  function showBanner(){
+    banner.innerHTML = seen()
+      ? `<span>🤖 Hi${store.name ? " " + esc(store.name) : ""}! Want a tour, or to meet all the apps?</span><button class="btn small" type="button" data-t="tour">Tour</button><button class="btn small ghost" type="button" data-t="reel">🎬 Meet the apps</button><button class="tour-banner-x" type="button" aria-label="Hide Robo for now">✕</button>`
+      : `<span>👋 New here? Let Robo 🤖 show you around!</span><button class="btn small" type="button" data-t="tour">Start the tour</button><button class="tour-banner-x" type="button" aria-label="Hide Robo for now">✕</button>`;
+    banner.hidden = closedThisVisit;
+  }
   showBanner();
   // and a link next to the Shop and Grown-ups ones, for any time
   const links = document.querySelector('.home-grownups a[href="#/shop"]');
