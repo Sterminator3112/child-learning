@@ -25,7 +25,7 @@
     const fx = Fun.pops();
     S.notes = S.notes || 0;
 
-    let open = false, raf = 0, last = 0, clock = 0;
+    let clock = 0;
     let flash = 0, flicker = 0, jump = 0, sour = 0, streak = 0;
     let notes = [];   // floating music notes
     let audio = null;
@@ -50,7 +50,7 @@
       if (rz < 0.5) return null;
       return { x: W / 2 + dx * FOC / rz, y: H * 0.62 - ry * FOC / rz, s: FOC / rz };
     }
-    function shade(hex, f){ const n = parseInt(hex.slice(1), 16), c = v => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${c(n >> 16)},${c((n >> 8) & 255)},${c(n & 255)})`; }
+    const shade = Fun.shade;
     function quad(pts, fill){
       const p = pts.map(q => proj(...q)); if (p.some(q => !q)) return;
       ctx.beginPath(); p.forEach((q, i) => i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y)); ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
@@ -129,10 +129,8 @@
       }
     }
 
-    function frame(now){
-      raf = 0;
-      if (!open) return;
-      const dt = Fun.dt(now, last, 0.05); last = now; clock += dt;
+    const anim = Fun.animate(dt => {
+      clock += dt;
       flash = Math.max(0, flash - dt * 1.5); flicker = Math.max(0, flicker - dt); jump = Math.max(0, jump - dt * 0.8); sour = Math.max(0, sour - dt);
       drawStage();
       drawLights();
@@ -156,8 +154,7 @@
       ctx.fillText(`🎵 ${S.notes} Töne${nxt ? ` · ${nxt.at - S.notes} bis ${nxt.name}` : " · volle Band!"}`, 20, 25);
       ctx.textBaseline = "alphabetic";
       fx.draw(ctx, dt);
-      raf = requestAnimationFrame(frame);
-    }
+    });
 
     return {
       answer(correct, st){
@@ -179,8 +176,8 @@
         Hub.saveStore();
       },
       topic(){},
-      open(){ open = true; if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-      close(){ open = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+      open: anim.open,
+      close: anim.close
     };
   };
 })();

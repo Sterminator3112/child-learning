@@ -30,7 +30,7 @@
     const fx = Fun.pops();
     S.defeated = S.defeated || 0; S.level = S.level || 1;
 
-    let open = false, raf = 0, last = 0, clock = 0;
+    let clock = 0;
     let kind = "words", hp = 0, maxHp = 0, shots = [], bits = [], hurt = 0, cast = 0, shield = 0, poof = 0, laugh = 0, enter = 1;
     const ME = { x: -3.2, z: 0 }, FOE = { x: 3.2, z: 0 };
 
@@ -72,10 +72,7 @@
       ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(b.x - R, b.y); ctx.lineTo(t.x, t.y); ctx.lineTo(b.x + R, b.y);
       ctx.ellipse(b.x, b.y, R, R * 0.28, 0, 0, Math.PI); ctx.fill();
     }
-    function shade(hex, f){
-      const n = parseInt(hex.slice(1), 16), c = v => Math.max(0, Math.min(255, Math.round(v * f)));
-      return `rgb(${c(n >> 16)},${c((n >> 8) & 255)},${c(n & 255)})`;
-    }
+    const shade = Fun.shade;
 
     /* ----- the arena ----- */
     function drawArena(){
@@ -226,10 +223,8 @@
     }
 
     /* ----- each frame ----- */
-    function frame(now){
-      raf = 0;
-      if (!open) return;
-      const dt = Fun.dt(now, last, 0.05); last = now; clock += dt;
+    const anim = Fun.animate(dt => {
+      clock += dt;
       cam.yaw = Math.sin(clock * 0.25) * 0.08; cam.x = Math.sin(clock * 0.25) * 0.8;
       hurt = Math.max(0, hurt - dt); cast = Math.max(0, cast - dt); shield = Math.max(0, shield - dt * 1.5); laugh = Math.max(0, laugh - dt);
       enter = Math.max(0, enter - dt * 1.6);
@@ -246,8 +241,7 @@
       ctx.textAlign = "right"; ctx.fillStyle = sp.col; ctx.fillText(`✨ Next spell: ${sp.name}${curStreak ? `  (streak ${curStreak})` : ""}`, W - 16, 25);
       ctx.textBaseline = "alphabetic";
       fx.draw(ctx, dt);
-      raf = requestAnimationFrame(frame);
-    }
+    });
 
     return {
       answer(correct, streak){
@@ -255,8 +249,8 @@
         else { curStreak = 0; laugh = 1.2; fire(true, null); }
       },
       topic(id){ if (MONSTERS[id] && id !== kind) { kind = id; newFoe(); } },
-      open(){ open = true; if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-      close(){ open = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+      open: anim.open,
+      close: anim.close
     };
   };
 })();

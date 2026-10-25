@@ -20,7 +20,7 @@
     const fx = Fun.pops();
     S.meters = S.meters || 0; S.schoggi = S.schoggi || 0;
 
-    let open = false, raf = 0, last = 0, clock = 0;
+    let clock = 0;
     let roll = 0, speed = 1, gap = 5, shownGap = 5, jump = 0, trip = 0, turbo = 0, caught = 0;
     let goodies = [];        // Schoggi floating ahead on the path, at a distance z
     let sign = null;         // a town sign coming up
@@ -28,7 +28,7 @@
     // a spot on the path: lane -1..1 across, z = 1 just in front of the camera, bigger = further away
     const at = (lane, z) => { const k = 1 / z; return { x: W / 2 + lane * W * 0.38 * k, y: HOR + (H - HOR) * k, s: k }; };
     function round(x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
-    function shade(hex, f){ const n = parseInt(hex.slice(1), 16), c = v => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${c(n >> 16)},${c((n >> 8) & 255)},${c(n & 255)})`; }
+    const shade = Fun.shade;
     // a box with a lit top and a darker side, so it looks solid
     function block(x, y, w, h, d, col){
       ctx.fillStyle = shade(col, 0.7); ctx.beginPath(); ctx.moveTo(x + w, y); ctx.lineTo(x + w + d, y - d * 0.6); ctx.lineTo(x + w + d, y - h - d * 0.6); ctx.lineTo(x + w, y - h); ctx.fill();
@@ -123,10 +123,8 @@
     }
 
     /* ----- each frame ----- */
-    function frame(now){
-      raf = 0;
-      if (!open) return;
-      const dt = Fun.dt(now, last, 0.05); last = now; clock += dt;
+    const anim = Fun.animate(dt => {
+      clock += dt;
       speed += ((turbo > 0 ? 2.6 : 1.1) - speed) * Math.min(1, dt * 2);
       roll += speed * dt * 1.2;
       jump = Math.max(0, jump - dt * 1.8); trip = Math.max(0, trip - dt * 1.6); turbo = Math.max(0, turbo - dt); caught = Math.max(0, caught - dt);
@@ -172,8 +170,7 @@
       ctx.fillStyle = "#fff"; ctx.fillText("🏃", W - 20, 25);
       ctx.textBaseline = "alphabetic";
       fx.draw(ctx, dt);
-      raf = requestAnimationFrame(frame);
-    }
+    });
 
     return {
       answer(correct, st){
@@ -203,8 +200,8 @@
         Hub.saveStore();
       },
       topic(){},
-      open(){ open = true; if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-      close(){ open = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+      open: anim.open,
+      close: anim.close
     };
   };
 })();

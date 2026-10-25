@@ -32,6 +32,7 @@
   BLOCKS.forEach((b, id) => { if (b && b.kind !== K.WATER) HIT[id] = 1; });
 
   function mount(host){
+    BW.textures();
     host.innerHTML = `
     <section class="game-screen" id="blOverlay" hidden aria-label="Block World">
       <div class="game-box">

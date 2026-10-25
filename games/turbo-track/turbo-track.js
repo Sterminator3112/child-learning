@@ -21,7 +21,7 @@
       { id: "turbo5",    icon: "🏆", name: "Track Champ",   desc: "Win 5 races on Turbo Track",  test: () => (T.wins || 0) >= 5 },
       { id: "turboHard", icon: "🤖", name: "Robot Crusher", desc: "Beat the Hard robots",        test: () => (T.hardWins || 0) >= 1 },
       { id: "turboLap",  icon: "⚡", name: "Lightning Lap", desc: "Drive a super-fast lap on any track",
-        test: () => COURSES.some(k => (T.bestLaps[k.C.layout.id] || Infinity) < k.C.parLap * 1.05) }
+        test: () => Object.keys(T.bestLaps || {}).length > 0 && courses().some(k => (T.bestLaps[k.C.layout.id] || Infinity) < k.C.parLap * 1.05) }
     ],
     mount
   });
@@ -131,7 +131,9 @@
     }
     return p;
   }
-  const COURSES = TurboTrackCourse.layouts.map(layout => {
+  // the tracks are built the first time they're needed (it takes a moment, so not while the app starts)
+  let built = null;
+  const courses = () => built || (built = TurboTrackCourse.layouts.map(layout => {
     const C = TurboTrackCourse.build(layout);
     return {
       C,
@@ -141,14 +143,13 @@
       // where the track pieces clip together, every 40 samples (not on the ramp or over the gap)
       JOINTS: C.samples.map((s, i) => i).filter(i => i % 40 === 20 && (C.samples[i].kind === "road" || C.samples[i].kind === "loop"))
     };
-  });
+  }));
   // the track being raced right now
   let C, samples, N, L, DS, HALF, wrap, ROAD, DECK, LINE, JOINTS;
   function useCourse(course){
     ({ C, ROAD, DECK, LINE, JOINTS } = course);
     ({ samples, N, L, DS, HALF, wrap } = C);
   }
-  useCourse(COURSES[0]);
 
   // shiny orange plastic: a faint speckle, so the track doesn't look flat
   let plastic = null;
@@ -167,6 +168,7 @@
   }
 
   function mount(host){
+    useCourse(courses()[0]);
     host.innerHTML = `
     <section class="game-screen" id="ttOverlay" hidden aria-label="Turbo Track">
       <div class="game-box">
@@ -285,7 +287,7 @@
     // a random track, but not the one you just raced
     let lastRaced = null;
     function newRace(preview){
-      const choices = COURSES.filter(k => k.C.layout.id !== lastRaced);
+      const choices = courses().filter(k => k.C.layout.id !== lastRaced);
       useCourse(choices[Math.floor(Math.random() * choices.length)]);
       if (preview !== true) lastRaced = C.layout.id;
       const skill = (ROBOTS.find(r => r.id === T.robots) || ROBOTS[0]).skill;
@@ -946,7 +948,7 @@
     function showGarage(){
       state = "garage";
       panelTitle.textContent = "🏎️ Turbo Track";
-      panelText.textContent = `Pick your car and colour, then race the robots for ${LAPS} laps. 🎲 Every race is on a random track: there are ${COURSES.length} to discover!`;
+      panelText.textContent = `Pick your car and colour, then race the robots for ${LAPS} laps. 🎲 Every race is on a random track: there are ${courses().length} to discover!`;
       results.hidden = true;
       garage.hidden = false;
       garageBtn.hidden = true;

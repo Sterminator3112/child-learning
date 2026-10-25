@@ -33,7 +33,7 @@
     const fx = Fun.pops();
     S.finds = S.finds || 0;
 
-    let open = false, raf = 0, last = 0, clock = 0;
+    let clock = 0;
     let travel = 0, speed = 1.2, alt = 5, wantAlt = 5, burner = 0, storm = 0, kind = "kantone";
     let rising = [];      // finds floating up from the ground into the basket
     let bag = [];         // the last few finds, shown in the corner
@@ -158,10 +158,8 @@
 
     /* ----- each frame ----- */
     const EMOJI_FONT = `system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-    function frame(now){
-      raf = 0;
-      if (!open) return;
-      const dt = Fun.dt(now, last, 0.05); last = now; clock += dt;
+    const anim = Fun.animate(dt => {
+      clock += dt;
       travel += speed * dt * 2.2;
       alt += (wantAlt - alt) * Math.min(1, dt * 1.5);
       burner = Math.max(0, burner - dt * 1.2); storm = Math.max(0, storm - dt * 0.5);
@@ -189,8 +187,7 @@
       ctx.fillText(`🎈 ${Math.round(alt * 120)} m · 🔎 ${S.finds} Funde  ${bag.join("")}`, 20, 25);
       ctx.textBaseline = "alphabetic";
       fx.draw(ctx, dt);
-      raf = requestAnimationFrame(frame);
-    }
+    });
 
     return {
       answer(correct, streak){
@@ -212,8 +209,8 @@
         Hub.saveStore();
       },
       topic(id){ if (FINDS[id]) kind = id; },
-      open(){ open = true; if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-      close(){ open = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+      open: anim.open,
+      close: anim.close
     };
   };
 })();
