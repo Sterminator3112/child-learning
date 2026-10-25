@@ -679,7 +679,7 @@
       const steer = state === "racing" ? (keys.right ? 1 : 0) - (keys.left ? 1 : 0) : 0;
       wheelTurn += (steer * 0.9 - wheelTurn) * Math.min(1, frameDt * 9);
       const shake = Math.abs(me.v) > 300 ? (Math.random() - 0.5) * Math.min(3, (Math.abs(me.v) - 300) / 80) : 0;
-      ctx.save(); ctx.translate(shake, shake * 0.5);
+      ctx.save(); if (!Hub.lessMotion()) ctx.translate(shake, shake * 0.5);
       // the bonnet in your car's colour, with a shine down the middle
       const hood = ctx.createLinearGradient(0, 380, 0, 470);
       hood.addColorStop(0, me.colour); hood.addColorStop(1, "#111");

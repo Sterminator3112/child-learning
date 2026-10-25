@@ -44,10 +44,37 @@ await page.goto(BASE + "#/grownups"); await page.waitForTimeout(300);
 check((await page.locator("#guNotes").innerText()).includes("level 6 jump is too long"), "the Grown-ups page lists the note");
 check((await page.locator("#guPlayers").innerText()).includes("Mia"), "the Grown-ups page lists both players");
 
+// study stars: right answers in Learning earn stars, which swap for coins and unlock Race Off's Brainiac
+await page.goto(BASE); await page.waitForTimeout(200);
+await page.evaluate(() => {
+  const s = Notebook.subjects[0], t = Object.keys(s.data.topics)[0];
+  s.data.topics[t].attempted = 260; s.data.topics[t].correct = 250;     // 25 stars
+  const d = new Date(), day = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  s.data.log = s.data.log || {}; s.data.log[day] = { a: 12, c: 11 };     // enough right answers today for the boost
+  Hub.store.timeLog = { [day]: { learning: 900, games: 1800 } };
+  Hub.saveStore();
+});
+check(await page.evaluate(() => Study.earned() === 25 && Study.boost()), "right answers earn study stars and turn on the study boost");
+await page.goto(BASE + "#/shop"); await page.waitForTimeout(300);
+const coinsBefore = await page.evaluate(() => Hub.store.coins);
+await page.click('button[data-stars="1"]');
+check(await page.evaluate(c => Hub.store.coins === c + 20 && Study.balance() === 24, coinsBefore), "a study star swaps for 20 coins in the shop");
+await page.goto(BASE + "#/games/raceoff"); await page.waitForTimeout(300);
+await page.click('[data-tab="garage"]'); await page.click('[data-car="brain"]'); await page.click("[data-starcar]");
+check(await page.evaluate(() => __ro.R().owned.brain === true && __ro.R().car === "brain" && Study.balance() === 4), "20 study stars unlock the Brainiac car");
+await page.evaluate(() => __ro.endless());
+await page.waitForFunction(() => __ro.state === "race", null, { timeout: 15000 });
+await page.evaluate(() => { __ro.car.head = true; }); await page.waitForTimeout(400);
+check(await page.evaluate(() => __ro.stats && __ro.stats.boosted === true), "the study boost pays x1.5 coins in Race Off");
+await page.goto(BASE + "#/grownups"); await page.waitForTimeout(300);
+const week = await page.locator("#guWeek").innerText();
+check(week.includes("Leo") && week.includes("Mia") && week.includes("15 min") && week.includes("30 min"), "the weekly summary lists every player with learning and game time");
+
 // the backup code carries both players to a fresh browser
 await page.click("#guMake");
 await page.waitForFunction(() => document.getElementById("guCode").value.length > 10);
 const code = await page.inputValue("#guCode");
+const leoCoins = await page.evaluate(() => Hub.store.coins);
 const fresh = await browser.newContext({ viewport: { width: 1100, height: 800 } });
 const p2 = await fresh.newPage();
 p2.on("pageerror", e => errors.push(e.message));
@@ -57,7 +84,7 @@ await p2.fill("#guPaste", code);
 await Promise.all([p2.waitForEvent("load"), p2.click("#guRestore")]);
 await p2.waitForTimeout(400);
 const restored = await p2.evaluate(() => ({ names: Hub.Profiles.data().list.map(p => p.name), coins: Hub.store.coins, mia: JSON.parse(localStorage.getItem(Hub.Profiles.keyOf(Hub.Profiles.data().list[1].id))).coins }));
-check(restored.names.join() === "Leo,Mia" && restored.coins === 123 && restored.mia === 7, "a backup code restores every player and their progress");
+check(restored.names.join() === "Leo,Mia" && restored.coins === leoCoins && restored.mia === 7, "a backup code restores every player and their progress");
 
 // offline: once the service worker has kept its copies, a game never opened before still starts with no network
 const off = await browser.newContext({ viewport: { width: 1100, height: 800 } });

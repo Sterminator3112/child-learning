@@ -57,14 +57,22 @@
     return m + ":" + String(s).padStart(2, "0");
   }
 
+  /* ---------------- comfort: less motion and bigger buttons, for everyone on this device ---------------- */
+  // stored in localStorage "lp:comfort" as { motion, big }; shown as classes on <html> for the CSS
+  const comfort = () => { try { return JSON.parse(localStorage.getItem("lp:comfort")) || {}; } catch (e) { return {}; } };
+  function applyComfort(){ const c = comfort(); document.documentElement.classList.toggle("less-motion", !!c.motion); document.documentElement.classList.toggle("big-buttons", !!c.big); }
+  function setComfort(key, on){ const c = comfort(); c[key] = !!on; try { localStorage.setItem("lp:comfort", JSON.stringify(c)); } catch (e) {} applyComfort(); }
+  applyComfort();
+
   /* ---------------- fun effects ---------------- */
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  // the system setting, or the Grown-ups page's "Less motion"
+  const reduceMotion = { get matches(){ return window.matchMedia("(prefers-reduced-motion: reduce)").matches || !!comfort().motion; } };
   const CONFETTI_COLOURS = ["#ff4d4d", "#ff9f1c", "#ffe14d", "#4dd66b", "#4da6ff", "#b46bff", "#ff6bd6"];
 
   // Every button flashes through the rainbow when clicked.
   document.addEventListener("click", e => {
     const btn = e.target.closest("button");
-    if (!btn || btn.disabled) return;
+    if (!btn || btn.disabled || reduceMotion.matches) return;
     btn.classList.remove("rainbow");
     void btn.offsetWidth; // restart the animation on quick repeat clicks
     btn.classList.add("rainbow");
@@ -330,6 +338,17 @@
 
   document.getElementById("appSearch").addEventListener("input", renderSearch);
 
+  // time spent: every 15 seconds with an app open on a visible page, add it to today's learning or games time
+  // (store.timeLog[day] = { learning, games } in seconds, the last 60 days), for the Grown-ups weekly summary
+  setInterval(() => {
+    if (!current || !current.app || document.hidden) return;
+    const d = new Date(), day = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const log = store.timeLog = store.timeLog || {}, t = log[day] = log[day] || { learning: 0, games: 0 };
+    t[current.app.section] = (t[current.app.section] || 0) + 15;
+    const days = Object.keys(log).sort(); while (days.length > 60) delete log[days.shift()];
+    saveStore();
+  }, 15000);
+
   window.addEventListener("hashchange", route);
   // the app scripts load after this one, so wait for all of them before showing anything
   window.addEventListener("DOMContentLoaded", () => {
@@ -340,5 +359,5 @@
   // what the Grown-ups page needs to know about the apps and the trophies
   const appList = () => apps.map(a => ({ id: a.id, section: a.section, title: a.title, icon: a.icon, stat: a.stat ? a.stat() : "", badges: a.badges.length, earned: a.badges.filter(b => store.badges[b.id]).length }));
   const toast = (icon, line1, line2) => showToast({ icon, name: line2 }, line1);
-  window.Hub = { store, saveStore, formatTime, confettiBurst, checkBadges, register, leave, page, appList, toast, STORE_KEY, Profiles };
+  window.Hub = { store, saveStore, formatTime, confettiBurst, checkBadges, register, leave, page, appList, toast, STORE_KEY, Profiles, comfort, setComfort, lessMotion: () => reduceMotion.matches };
 })();

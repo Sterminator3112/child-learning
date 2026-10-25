@@ -29,7 +29,9 @@
     { id: "comet",   name: "Neon Comet",   body: "#24e07a", trim: "#ff4df0", price: 1300, power: 1.18, grip: 1.1,  susp: 1.0, wr: 14, style: "wedge", awd: false, ab: "spin",   snd: { base: 66, span: 200, type: "sawtooth" } },
     { id: "rocket",  name: "Rocket Rod",   body: "#8b3dff", trim: "#ffe14d", price: 2200, power: 1.35, grip: 1.0,  susp: 1.0, wr: 15, style: "fin",   awd: false, ab: "rocket", snd: { base: 60, span: 230, type: "sawtooth" } },
     { id: "monster", name: "Monster Mash", body: "#ff8a00", trim: "#1a1a24", price: 3500, power: 1.2,  grip: 1.3,  susp: 1.35, wr: 21, style: "truck", awd: true,  ab: "crush",  snd: { base: 30, span: 85,  type: "square" } },
-    { id: "gold",    name: "Gold Rush",    body: "#ffc400", trim: "#ff3b1f", price: 5500, power: 1.45, grip: 1.2,  susp: 1.15, wr: 16, style: "wedge", awd: true,  ab: "gold",   snd: { base: 52, span: 175, type: "sawtooth" } }
+    { id: "gold",    name: "Gold Rush",    body: "#ffc400", trim: "#ff3b1f", price: 5500, power: 1.45, grip: 1.2,  susp: 1.15, wr: 16, style: "wedge", awd: true,  ab: "gold",   snd: { base: 52, span: 175, type: "sawtooth" } },
+    // the star-only car: bought with study stars from Learning, not coins
+    { id: "brain",   name: "Brainiac",     body: "#2fd6c8", trim: "#ff4df0", price: 0, stars: 20, power: 1.3, grip: 1.25, susp: 1.2, wr: 16, style: "fin", awd: true, ab: "brain", snd: { base: 58, span: 190, type: "sawtooth" } }
   ];
   const ABILITY = {
     magnet: { icon: "🧲", name: "Coin magnet",  text: "pulls in coins close by" },
@@ -38,7 +40,8 @@
     spin:   { icon: "🌀", name: "Air spinner",  text: "turns faster in the air for easier flips" },
     rocket: { icon: "🚀", name: "Big nitro",    text: "starts full of nitro and burns it slower" },
     crush:  { icon: "🪨", name: "Rock crusher", text: "smashes rocks without slowing down" },
-    gold:   { icon: "💰", name: "Double coins", text: "every coin you pick up counts twice" }
+    gold:   { icon: "💰", name: "Double coins", text: "every coin you pick up counts twice" },
+    brain:  { icon: "🧠", name: "Big brain",    text: "thinks ahead, so its fuel lasts much longer" }
   };
   const UPS = [
     { id: "e", name: "Engine",     icon: "⚙️", text: "more power and speed" },
@@ -53,7 +56,8 @@
     { id: "green", name: "Green", c: "#22c55e", price: 120 }, { id: "yellow", name: "Yellow", c: "#ffd400", price: 120 },
     { id: "pink", name: "Pink", c: "#ff4fa8", price: 120 }, { id: "black", name: "Black", c: "#23232e", price: 120 },
     { id: "white", name: "White", c: "#f4f4f4", price: 120 }, { id: "teal", name: "Teal", c: "#14c8c0", price: 120 },
-    { id: "purple", name: "Purple", c: "#8b3dff", price: 120 }, { id: "orange", name: "Orange", c: "#ff8a00", price: 120 }
+    { id: "purple", name: "Purple", c: "#8b3dff", price: 120 }, { id: "orange", name: "Orange", c: "#ff8a00", price: 120 },
+    { id: "galaxy", name: "Galaxy", c: "#3b2a8f", price: 0, stars: 8 }
   ];
   const RIMS = [
     { id: "chrome", name: "Chrome", c: "#c9ced8", st: "spokes", price: 0 }, { id: "gold", name: "Gold", c: "#ffd84d", st: "spokes", price: 200 },
@@ -528,10 +532,12 @@
         const prev = S.bestTime[lvl.n];
         if (!prev || time < prev) { newBest = true; S.bestTime[lvl.n] = Math.round(time * 10) / 10; S.ghost[lvl.n] = { car: S.car, d: rec.concat([[Math.round(car.x), Math.round(car.y), Math.round(car.a * 100)]]) }; }
       }
-      const earned = mode === "custom" ? 0 : runCoins + bonus;   // coins on your own tracks are just for fun
+      // coins on your own tracks are just for fun; a day with enough right answers in Learning pays x1.5
+      const boosted = mode !== "custom" && window.Study && Study.boost();
+      const earned = mode === "custom" ? 0 : Math.round((runCoins + bonus) * (boosted ? 1.5 : 1));
       S.coins += earned;
       lastRun = { d: rec.concat([[Math.round(car.x), Math.round(car.y), Math.round(car.a * 100)]]), m, why, time, car: S.car, finish: finished, label: mode === "custom" ? `my own track "${R().tracks[pickTrack].name}"` : mode === "career" ? `level ${lvl.n + 1}` : mode === "daily" ? "today's daily track" : "an endless run" };
-      stats = { m, why, earned, bonus, runCoins, newStars, newBest, time, dailyNote, stunts, bestCombo, rivalWon, mission: missions.map(mi => ({ text: mi.text, ok: missionDone(mi) })) };
+      stats = { m, why, earned, boosted, bonus, runCoins, newStars, newBest, time, dailyNote, stunts, bestCombo, rivalWon, mission: missions.map(mi => ({ text: mi.text, ok: missionDone(mi) })) };
       Hub.saveStore(); Hub.checkBadges();
       if (finished) { Fun.sfx.tada(); Hub.confettiBurst(canvas); } else { Fun.sfx.crash(); if (store.sound !== false && why !== "fuel") music.sting(); if (why === "crash") fx.pop("CRASH!", W / 2, H * 0.35, "#ff6b6b", 48); if (why === "fuel") fx.pop("OUT OF FUEL!", W / 2, H * 0.35, "#ff6b4a", 44); if (why === "fell") fx.pop("SPLASH!", W / 2, H * 0.35, "#7fd0ff", 44); }
       setTimeout(() => showResults(), finished ? 1400 : 1100);
@@ -555,7 +561,7 @@
         dist = Math.max(dist, car.x - 120);
         // fuel and nitro
         const gasing = keys.gas && fuel > 0;
-        fuel = Math.max(0, fuel - dt * (gasing ? 0.036 : 0.012) * S.drain * (R().assist ? 0.65 : 1));
+        fuel = Math.max(0, fuel - dt * (gasing ? 0.036 : 0.012) * S.drain * (R().assist ? 0.65 : 1) * (S.C.ab === "brain" ? 0.6 : 1));
         if (keys.nitro && nitro > 0 && fuel > 0) { nitro = Math.max(0, nitro - dt * 0.28 * S.nitroUse); usedNitro = true; }
         const ab = car.S.C.ab, cm = ab === "gold" ? 2 : 1;
         pickups.forEach(p => {
@@ -841,7 +847,7 @@
       if (!terrain) { ctx.fillStyle = "#6fc3ff"; ctx.fillRect(0, 0, W, H); return; }
       if (state === "edit") { drawBackground(); drawTerrain(); drawRocks(); drawPickups(); drawEditor(); return; }
       if (!car) { drawBackground(); drawTerrain(); drawRocks(); drawPickups(); return; }   // a track built before any race
-      if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+      if (shake > 0 && !Hub.lessMotion()) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
       drawBackground(); drawZones(); drawTerrain(); drawRocks(); drawPickups();
       dust.forEach(d => { ctx.fillStyle = `rgba(230,220,200,${Math.max(0, 0.6 - d.t)})`; ctx.beginPath(); ctx.arc(sx(d.x), sy(d.y), (4 + d.t * 14) * cam.z, 0, 7); ctx.fill(); });
       if (ghost && (state === "race" || state === "count" || state === "finish")) drawGhost();
@@ -879,7 +885,7 @@
       const s = stats, L = lvl;
       if (!s) return;
       resultsOn = true;
-      const stuntLine = s.stunts ? ` ${s.stunts} stunt${s.stunts > 1 ? "s" : ""}, best combo x${Math.min(5, s.bestCombo)}.` : "";
+      const stuntLine = (s.stunts ? ` ${s.stunts} stunt${s.stunts > 1 ? "s" : ""}, best combo x${Math.min(5, s.bestCombo)}.` : "") + (s.boosted ? " 📚 Study boost: coins x1.5!" : "");
       const endWhy = s.why === "fuel" ? "Out of fuel" : s.why === "fell" ? "You fell in!" : s.why === "crash" ? "Roof down!" : "Run over";
       if (mode === "endless") {
         titleEl.textContent = `🛣️ ${s.m} m`;
@@ -932,18 +938,19 @@
         h += T.map((t, i) => `<div class="ro-track${mode === "custom" && i === pickTrack ? " on" : ""}"><span>${esc(t.name)}<small>${WORLDS[t.world].icon} ${Math.round(t.pts[t.pts.length - 1][0] / PX_M)} m${t.best ? ` · best ${t.best} s` : ""}</small></span><div><button type="button" class="btn small" data-drive="${i}" aria-label="Drive">▶</button><button type="button" class="btn small" data-edit="${i}" aria-label="Edit">✏️</button><button type="button" class="btn small" data-code="${i}" aria-label="Share code">📤</button><button type="button" class="btn small" data-deltrack="${i}" aria-label="Delete">🗑️</button></div></div>`).join("") || `<p class="ro-note">No tracks yet. Tap "New track"!</p>`;
         body.innerHTML = h + "</div>";
       } else if (tab === "style") {
-        const sw = (arr, key, cur, own) => arr.map(o => { const have = o.price === 0 || !!S.cos[key + ":" + o.id]; return `<button type="button" class="ro-swb${o.id === cur ? " on" : ""}" data-${key}="${o.id}" aria-label="${o.name}" style="--c:${o.c || "#888"}"><i></i><span>${o.name}</span><small>${o.id === cur ? "✓" : have ? "Owned" : "🪙 " + o.price}</small></button>`; }).join("");
+        const sw = (arr, key, cur, own) => arr.map(o => { const have = (o.price === 0 && !o.stars) || !!S.cos[key + ":" + o.id]; return `<button type="button" class="ro-swb${o.id === cur ? " on" : ""}" data-${key}="${o.id}" aria-label="${o.name}" style="--c:${o.c || "#888"}"><i></i><span>${o.name}</span><small>${o.id === cur ? "✓" : have ? "Owned" : o.stars ? "⭐ " + o.stars : "🪙 " + o.price}</small></button>`; }).join("");
         body.innerHTML = `<div class="ro-bank">🪙 ${S.coins} coins</div><canvas class="ro-preview" aria-label="Your car"></canvas><div class="ro-note"><b>Paint</b> (all cars)</div><div class="ro-swatches">${sw(PAINTS, "paint", S.paint || "stock")}</div><div class="ro-note"><b>Wheels</b></div><div class="ro-swatches">${sw(RIMS, "rim", S.rim || "chrome")}</div>`;
       } else {
         const gc = garageCar || S.car, C = CARS.find(c => c.id === gc), U = upsOf(C.id);
         let h = `<div class="ro-bank">🪙 ${S.coins} coins</div><div class="sw-cars">` + CARS.map(c => {
           const own = !!S.owned[c.id];
-          return `<button type="button" class="sw-car${c.id === gc ? " on" : ""}${c.id === S.car ? " using" : ""}" data-car="${c.id}" style="--c:${c.body};--t:${c.trim}"><i></i><span>${c.name}</span><small>${own ? (c.id === S.car ? "✓ Using" : "Owned") : "🪙 " + c.price}</small></button>`;
+          return `<button type="button" class="sw-car${c.id === gc ? " on" : ""}${c.id === S.car ? " using" : ""}" data-car="${c.id}" style="--c:${c.body};--t:${c.trim}"><i></i><span>${c.name}</span><small>${own ? (c.id === S.car ? "✓ Using" : "Owned") : c.stars ? "⭐ " + c.stars : "🪙 " + c.price}</small></button>`;
         }).join("") + `</div>`;
         const own = !!S.owned[C.id];
         const AB = ABILITY[C.ab];
         h += `<div class="ro-carbar"><b>${C.name}</b> <span class="ro-ab">${AB.icon} ${AB.name}: ${AB.text}</span> `;
-        if (!own) h += `<button type="button" class="btn small" data-buycar="${C.id}" ${S.coins >= C.price ? "" : "disabled"}>Buy 🪙 ${C.price}</button>`;
+        if (!own && C.stars) h += `<button type="button" class="btn small" data-starcar="${C.id}" ${Study.balance() >= C.stars ? "" : "disabled"}>Unlock with ⭐ ${C.stars} study stars</button> <small class="ro-ab">you have ⭐ ${Study.balance()}: earn 1 for every ${Study.PER_STAR} right answers in Learning</small>`;
+        else if (!own) h += `<button type="button" class="btn small" data-buycar="${C.id}" ${S.coins >= C.price ? "" : "disabled"}>Buy 🪙 ${C.price}</button>`;
         else if (S.car !== C.id) h += `<button type="button" class="btn small" data-usecar="${C.id}">Use this car</button>`;
         h += `</div><canvas class="ro-preview" aria-label="${C.name}"></canvas><div class="ro-ups">` + UPS.map(u => {
           const lv = U[u.id], cost = upCost(lv), max = lv >= 5;
@@ -972,8 +979,12 @@
       if (b.dataset.share) { shareRun(); return; }
       if (b.dataset.tilt) { toggleTilt(); }
       else if (b.dataset.paint || b.dataset.rim) {
-        const key = b.dataset.paint ? "paint" : "rim", id = b.dataset[key], o = (key === "paint" ? PAINTS : RIMS).find(x => x.id === id), have = o.price === 0 || S.cos[key + ":" + id];
-        if (!have) { if (S.coins < o.price) { Fun.sfx.pop(); return; } S.coins -= o.price; S.cos[key + ":" + id] = true; Fun.sfx.coin(); Hub.checkBadges(); }
+        const key = b.dataset.paint ? "paint" : "rim", id = b.dataset[key], o = (key === "paint" ? PAINTS : RIMS).find(x => x.id === id), have = (o.price === 0 && !o.stars) || S.cos[key + ":" + id];
+        if (!have) {
+          if (o.stars ? !Study.spend(o.stars) : S.coins < o.price) { Fun.sfx.pop(); Hub.toast("⭐", o.stars ? "Not enough study stars" : "Not enough coins", o.stars ? `Earn ⭐ in Learning: 1 for every ${Study.PER_STAR} right answers` : "Race to earn more"); return; }
+          if (!o.stars) S.coins -= o.price;
+          S.cos[key + ":" + id] = true; Fun.sfx.coin(); Hub.checkBadges();
+        }
         else Fun.sfx.pop();
         S[key] = id; Hub.saveStore();
       }
@@ -982,6 +993,7 @@
       else if (b.dataset.world) { pickWorld = +b.dataset.world; const first = pickWorld * 6; pickLvl = LEVELS.slice(first, first + 6).find(L => unlocked(L.n) && !starsOf(L.n))?.n ?? first; Fun.sfx.pop(); }
       else if (b.dataset.lvl) { pickLvl = +b.dataset.lvl; Fun.sfx.pop(); }
       else if (b.dataset.car) { garageCar = b.dataset.car; Fun.sfx.pop(); }
+      else if (b.dataset.starcar) { const C = CARS.find(c => c.id === b.dataset.starcar); if (Study.spend(C.stars)) { S.owned[C.id] = true; S.car = C.id; Fun.sfx.tada(); Hub.confettiBurst(b); Hub.saveStore(); Hub.checkBadges(); } }
       else if (b.dataset.buycar) { const C = CARS.find(c => c.id === b.dataset.buycar); if (S.coins >= C.price) { S.coins -= C.price; S.owned[C.id] = true; S.car = C.id; Fun.sfx.tada(); Hub.confettiBurst(b); Hub.saveStore(); Hub.checkBadges(); } }
       else if (b.dataset.usecar) { S.car = b.dataset.usecar; Fun.sfx.ding(); Hub.saveStore(); }
       else if (b.dataset.up) { const C = CARS.find(c => c.id === (garageCar || S.car)), U = upsOf(C.id), cost = upCost(U[b.dataset.up]); if (S.coins >= cost && U[b.dataset.up] < 5) { S.coins -= cost; U[b.dataset.up]++; Fun.sfx.coin(); Hub.saveStore(); } }

@@ -732,7 +732,7 @@
       if (!camPos) camPos = want.slice();
       const k = Math.min(1, dt * 8);
       for (let i = 0; i < 3; i++) camPos[i] += (want[i] - camPos[i]) * k;
-      const bob = me.moving ? Math.sin(me.walk) * (me.run ? 0.09 : 0.05) : 0, sh = shakeT * 0.6;
+      const bob = me.moving ? Math.sin(me.walk) * (me.run ? 0.09 : 0.05) : 0, sh = Hub.lessMotion() ? 0 : shakeT * 0.6;
       const eye = [camPos[0] + (Math.random() - 0.5) * sh, camPos[1] + bob + (Math.random() - 0.5) * sh, camPos[2] + (Math.random() - 0.5) * sh];
       const target = [me.x + sy * 3, 1.5, me.z + cy * 3];
       const aspect = W / H, near = 0.1, far = 220, f = 1 / Math.tan((me.run ? FOV * 1.08 : FOV) / 2);

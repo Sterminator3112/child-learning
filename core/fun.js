@@ -156,7 +156,7 @@
     return { el: b, refresh: show };
   }
   function shake(el){
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || Hub.lessMotion()) return;
     el.classList.remove("fun-shake"); void el.offsetWidth; el.classList.add("fun-shake");
   }
 

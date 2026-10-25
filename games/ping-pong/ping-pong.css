@@ -19,6 +19,7 @@
 }
 .pp-levels{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; font-weight: 700; }
 .pp-levels .segmented button{ color: #fff; }
+.pp-levels .segmented button[aria-pressed="true"]{ color: var(--accent-ink); }
 .game-help.pp-touch-help{ display: none; }
 @media (pointer: coarse){
   .game-help.pp-touch-help{ display: block; }

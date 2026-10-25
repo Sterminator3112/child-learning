@@ -8,7 +8,7 @@ on:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,7 +18,7 @@ jobs:
         run: for f in $(git ls-files '*.js' '*.mjs'); do node --check "$f" || exit 1; done
       - name: Install Playwright and Chromium
         run: |
-          npm install --no-save --no-package-lock playwright@1.47.2
+          npm install --no-save --no-package-lock playwright@1.47.2 axe-core@4.10.2
           npx playwright install --with-deps chromium
       - name: Open every app and game
         run: node tests/smoke.mjs
@@ -26,3 +26,5 @@ jobs:
         run: node tests/features.mjs
       - name: Race Off physics (the car mustn't sink into the ground or get stuck)
         run: node tests/raceoff.mjs
+      - name: Accessibility (axe-core on every page, keyboard, comfort settings)
+        run: node tests/a11y.mjs
