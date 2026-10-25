@@ -1,4 +1,4 @@
-/* Blocky: the Roblox-style 3D look that Tag Rush and Potato Tycoon share, drawn on a plain 2D canvas.
+/* Blocky: the Roblox-style 3D look that Tag Rush, Blox Soccer and Blox Hoops share, drawn on a plain 2D canvas.
    A camera floats up behind you; the world is flat ground with boxes on it, and people are blocky
    avatars with the classic smiley.
      const B = Blocky(ctx, W, H)     makes one for a canvas (W × H is the size the game draws at)

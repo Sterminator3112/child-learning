@@ -29,7 +29,6 @@
     const play = [
       { id: "poolwin", icon: "🎱", text: "Win a game of Blox Pool", goal: 1, href: "#/games/pool", counter: "poolWins" },
       { id: "strike", icon: "🎳", text: "Bowl a strike", goal: 1, href: "#/games/bowling", counter: "bowlStrikes" },
-      { id: "golfpar", icon: "⛳", text: "Make par or better on 3 mini golf holes", goal: 3, href: "#/games/minigolf", counter: "golfPars" },
       { id: "soccer", icon: "⚽", text: "Win a Blox Soccer match", goal: 1, href: "#/games/soccer", counter: "soccerWins" },
       { id: "dunk", icon: "🏀", text: "Slam dunk in Blox Hoops", goal: 1, href: "#/games/hoops", counter: "hoopsDunks" },
       { id: "build", icon: "🧱", text: "Place 30 blocks in Block World", goal: 30, href: "#/games/blocks", counter: "blocksPlaced" },

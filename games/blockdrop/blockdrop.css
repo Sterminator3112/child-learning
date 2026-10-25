@@ -1,0 +1,23 @@
+/* Block Drop 3D: the well, the side boxes and the neon floor on one canvas, the mode picker, and the touch buttons. */
+.bd-box{ width: min(100%, 720px, calc((100vh - 120px) * 72 / 66)); }
+@media (pointer: coarse){ .bd-box{ width: min(100%, 720px, calc((100vh - 190px) * 72 / 66)); } }
+#bdCanvas{
+  display: block; width: 100%; aspect-ratio: 72 / 66; height: auto;
+  border-radius: 12px; border: 2px solid rgba(255,63,164,0.5); background: #0b0320; touch-action: none;
+}
+#bdCanvas:focus{ outline: none; }
+.bd-panel{ background: rgba(10,4,30,0.72); overflow-y: auto; }
+.bd-modes{ display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.bd-mode{
+  display: flex; flex-direction: column; gap: 2px; width: 170px; padding: 8px 10px; cursor: pointer; text-align: center;
+  font: 500 12.5px "Karla", system-ui, sans-serif; color: #fff; background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.3); border-radius: 12px;
+}
+.bd-mode b{ font-size: 15px; }
+.bd-mode.on{ background: rgba(255,63,164,0.35); border-color: #ff3fa4; box-shadow: 0 0 14px rgba(255,63,164,0.6); }
+.bd-touch{ flex-wrap: wrap; gap: 6px; }
+.bd-touch .btn{ min-width: 46px; padding: 10px 11px; }
+@media (max-width: 640px), (max-height: 500px){
+  .bd-mode{ width: 120px; padding: 5px 6px; }
+  .bd-mode span{ display: none; }
+}

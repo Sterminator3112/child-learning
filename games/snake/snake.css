@@ -1,0 +1,29 @@
+/* Rainbow Snake: the lawn, with an arrow pad on touch screens. */
+.sn-box{ width: min(100%, calc((100vh - 110px) * 5 / 4)); }
+@media (pointer: coarse){ .sn-box{ width: min(100%, calc((100vh - 200px) * 5 / 4)); } }
+#snCanvas:focus{ outline: none; }
+#snCanvas{
+  display: block; width: 100%; aspect-ratio: 5 / 4; height: auto;
+  border-radius: 12px; border: 2px solid rgba(255,255,255,0.25);
+  background: #2f8f4e; touch-action: none;
+}
+.sn-panel{ background: rgba(0,0,0,0.6); }
+.sn-pad{ display: none; grid-template-columns: repeat(3, 64px); gap: 6px; justify-content: center; }
+.sn-pad .btn{ padding: 12px 0; font-size: 18px; color: #fff; border-color: rgba(255,255,255,0.4); user-select: none; -webkit-user-select: none; touch-action: none; }
+.sn-pad [data-dir="up"]{ grid-column: 2; }
+.sn-pad [data-dir="left"]{ grid-column: 1; grid-row: 2; }
+.sn-pad [data-dir="down"]{ grid-column: 2; grid-row: 2; }
+.sn-pad [data-dir="right"]{ grid-column: 3; grid-row: 2; }
+@media (pointer: coarse){
+  .sn-pad{ display: grid; }
+}
+/* phone held sideways: the steering pad sits next to the maze instead of under it */
+@media (pointer: coarse) and (max-height: 500px) and (orientation: landscape){
+  .sn-box{
+    width: auto; display: grid; grid-template-columns: auto auto; align-items: center; gap: 6px 16px;
+  }
+  .sn-box .game-hud{ grid-column: 1 / -1; }
+  .sn-box .game-stage{ width: calc((100vh - 60px) * 5 / 4); width: calc((100dvh - 60px) * 5 / 4); }
+  .sn-pad{ grid-template-columns: repeat(3, 54px); }
+}
+.sn-panel-btns{ display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }

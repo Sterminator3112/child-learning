@@ -1,0 +1,76 @@
+/* The presenter: Robo's guided tour (spotlight + speech bubble) and the full-screen show reel. */
+.tour-root{ position: fixed; inset: 0; z-index: 2000; }
+.tour-mode{ pointer-events: auto; }
+.tour-spot{
+  position: fixed; border-radius: 16px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(6,8,24,0.72), 0 0 0 3px #ffd84d, 0 0 26px 6px rgba(255,216,77,0.6);
+  transition: left 0.35s, top 0.35s, width 0.35s, height 0.35s;
+}
+.tour-spot.none{ left: 50% !important; top: 50% !important; width: 0 !important; height: 0 !important; }
+.tour-bubble{
+  position: fixed; left: 50%; width: min(460px, calc(100vw - 24px));
+  display: flex; gap: 12px; align-items: flex-start; padding: 16px 16px 14px;
+  background: #fffdf5; color: #1a1030; border-radius: 20px; border: 3px solid #ffd84d;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.45); transition: top 0.35s;
+}
+.tour-bubble.pop{ animation: tour-pop 0.35s ease-out; }
+@keyframes tour-pop{ from{ opacity: 0; scale: 0.9; } }
+.tour-robo{ font-size: 46px; line-height: 1; display: inline-block; animation: tour-bob 1.6s ease-in-out infinite; }
+@keyframes tour-bob{ 50%{ transform: translateY(-5px) rotate(-6deg); } }
+.tour-body{ flex: 1; min-width: 0; }
+.tour-text{ margin: 2px 26px 12px 0; font: 600 16px/1.45 "Karla", system-ui, sans-serif; }
+.tour-btns{ display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tour-count{ margin-left: auto; font: 700 12px "IBM Plex Mono", monospace; opacity: 0.6; }
+.tour-top{ position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+.tour-x, .tour-voice{ border: 0; background: rgba(0,0,0,0.07); color: inherit; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 14px; }
+.tour-banner{
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
+  margin: 0 auto 14px; padding: 10px 14px; max-width: 640px; border-radius: 16px;
+  background: linear-gradient(90deg, rgba(255,216,77,0.22), rgba(255,63,164,0.18)); border: 2px solid rgba(255,216,77,0.6);
+  font-weight: 700; animation: tour-pop 0.5s ease-out;
+}
+.tour-banner-x{ border: 0; background: none; color: inherit; cursor: pointer; font-size: 16px; opacity: 0.7; }
+
+/* the show reel */
+.reel-mode{
+  display: flex; flex-direction: column; color: #fff; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #3b1a78 0%, #170a3a 55%, #07041a 100%);
+}
+.reel-stars{ position: absolute; inset: 0; pointer-events: none; }
+.reel-stars i{ position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; animation: reel-twinkle 6s linear infinite; }
+@keyframes reel-twinkle{ 0%,100%{ opacity: 0.2; transform: scale(0.6); } 50%{ opacity: 1; transform: scale(1.4); } }
+.reel-top{ position: relative; display: flex; gap: 10px; align-items: flex-start; padding: 12px; }
+.reel-chapters{ display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.reel-ch{ font: 700 13px "Karla", system-ui, sans-serif; color: #fff; background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.3); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.reel-ch.on{ background: #ffd84d; color: #1a1030; border-color: #ffd84d; }
+.reel-tools{ display: flex; gap: 6px; }
+.reel-mode .tour-x, .reel-mode .tour-voice{ background: rgba(255,255,255,0.15); color: #fff; width: 36px; height: 36px; }
+.reel-stage{ position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 20px; gap: 6px; perspective: 800px; }
+.reel-icon{ font-size: clamp(90px, 22vh, 180px); line-height: 1.1; filter: drop-shadow(0 12px 30px rgba(255,216,77,0.45)); }
+.reel-stage.in .reel-icon{ animation: reel-spin 0.9s cubic-bezier(.2,1.4,.4,1); }
+.reel-stage.in .reel-title, .reel-stage.in .reel-where{ animation: reel-up 0.6s 0.15s both ease-out; }
+.reel-stage.in .reel-blurb, .reel-stage.in .reel-facts, .reel-stage.in .reel-try{ animation: reel-up 0.6s 0.3s both ease-out; }
+@keyframes reel-spin{ from{ transform: rotateY(-540deg) scale(0.2); opacity: 0; } }
+@keyframes reel-up{ from{ transform: translateY(24px); opacity: 0; } }
+.reel-where{ font: 700 14px "IBM Plex Mono", monospace; color: #ffd84d; letter-spacing: 0.04em; }
+.reel-title{ font: 800 clamp(30px, 6vw, 56px) "Bricolage Grotesque", sans-serif; margin: 0; text-shadow: 0 4px 0 rgba(0,0,0,0.35); }
+.reel-blurb{ font: 500 clamp(15px, 2.4vw, 20px)/1.45 "Karla", system-ui, sans-serif; max-width: 34em; margin: 0; opacity: 0.92; }
+.reel-facts{ display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.reel-facts span{ background: rgba(255,255,255,0.12); padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+.reel-try{ margin-top: 8px; font-size: 18px; }
+.reel-robo{ position: relative; display: flex; gap: 10px; align-items: center; justify-content: center; padding: 4px 12px; }
+.reel-robo .tour-robo{ font-size: 40px; }
+.reel-say{ background: #fffdf5; color: #1a1030; padding: 8px 14px; border-radius: 16px 16px 16px 4px; font-weight: 700; max-width: 70vw; }
+.reel-bottom{ position: relative; display: flex; gap: 8px; align-items: center; padding: 10px 14px 14px; }
+.reel-bottom .btn.ghost{ color: #fff; border-color: rgba(255,255,255,0.4); }
+.reel-bar{ flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.15); overflow: hidden; }
+.reel-fill{ height: 100%; width: 0; background: linear-gradient(90deg, #ff4d6d, #ffd84d, #4dd96b, #4db8ff, #b26bff); }
+.reel-num{ font-size: 13px; opacity: 0.8; }
+@media (max-width: 640px), (max-height: 520px){
+  .reel-ch{ font-size: 11px; padding: 3px 8px; }
+  .reel-robo .tour-robo{ font-size: 28px; }
+  .reel-say{ font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce){
+  .tour-robo, .reel-stars i, .reel-stage.in *{ animation: none !important; }
+}

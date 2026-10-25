@@ -191,7 +191,7 @@
     const $ = id => document.getElementById(id);
     const overlay = $("swOverlay"), canvas = $("swCanvas"), ctx = canvas.getContext("2d");
     const panel = $("swPanel"), panelTitle = $("swPanelTitle"), panelText = $("swPanelText"), playBtn = $("swPlayBtn");
-    const fx = Fun.pops(), music = WheelsMusic();
+    const fx = Fun.pops(), music = WheelsMusic(), rfx = RaceFX();   // rfx: the race WOW kit (nitro warp, titles, flashes, fireworks)
     const W = 960, H = 540;
 
     let open = false, running = false, last = 0, clock = 0, scale = 1;
@@ -227,7 +227,7 @@
     function crash(){
       if (state !== "race") return;
       state = "crash"; crashT = 0;
-      Fun.sfx.crash(); fx.pop("CRASH!", W / 2, H * 0.35, "#ff6b6b", 48);
+      Fun.sfx.crash(); rfx.flash("#ff3b3b", 0.55); rfx.title("CRASH!", "#ff6b6b");
       for (let i = 0; i < 24; i++) bits.push({ x: car.x, y: car.y, vx: (Math.random() - 0.5) * 600, vy: -Math.random() * 600, t: 0, col: i % 3 ? carDef.body : "#333" });
     }
     function land(pcIndex, s, seg){
@@ -240,11 +240,11 @@
       const flips = Math.floor(Math.abs(flipAcc) / (Math.PI * 2) + 0.15);
       if (flips >= 1) {
         const word = flips >= 3 ? "TRIPLE FLIP!" : flips === 2 ? "DOUBLE FLIP!" : "FLIP!";
-        fx.pop(word, W / 2, H * 0.3, "#ffe14d", 44); points(250 * flips * flips, flips >= 2 ? "COMBO" : "FLIP", "#ffe14d"); nitro = Math.min(1, nitro + 0.25 * flips); Fun.sfx.tada();
+        rfx.title(word, "#ffe14d", 0.3); if (flips >= 2) rfx.fireworks(flips); points(250 * flips * flips, flips >= 2 ? "COMBO" : "FLIP", "#ffe14d"); nitro = Math.min(1, nitro + 0.25 * flips); Fun.sfx.tada();
         if (flips >= 2) { W8().doubleFlip = true; Hub.saveStore(); Hub.checkBadges(); }
       }
       if (car.air > 1) points(Math.round(car.air * 6) * 10, "BIG AIR", "#4df2ff");
-      if (Math.abs(diff) < 0.22 && car.air > 0.5) { fx.pop("PERFECT LANDING!", W / 2, H * 0.4, "#7dff9a", 32); points(150); nitro = Math.min(1, nitro + 0.2); Fun.sfx.ding(); }
+      if (Math.abs(diff) < 0.22 && car.air > 0.5) { fx.pop("PERFECT LANDING!", W / 2, H * 0.4, "#7dff9a", 32); rfx.flash("#ffffff", 0.25); points(150); nitro = Math.min(1, nitro + 0.2); Fun.sfx.ding(); }
       if (car.air > 0.3) {   // a thump: the car squashes on its springs, the screen shakes and dust flies
         shake = Math.min(12, car.air * 9); bounce = 1;
         for (let i = 0; i < 10; i++) dust.push({ x: car.x + (Math.random() - 0.5) * 60, y: car.y + 10, vx: (Math.random() - 0.5) * 260, vy: -Math.random() * 160, t: 0 });
@@ -261,7 +261,7 @@
         if (keys.brake) acc -= car.v > 30 ? 1700 : 600 * (1 + car.v / 300);
         if (keys.nitro && nitro > 0 && fuel > 0) { acc += 1500 * Math.max(0, 1 - car.v / (d.maxV * 1.35)); nitro = Math.max(0, nitro - h * 0.35); }
         const boost = T.boosts.find(b => b.piece === car.piece && a.x >= b.x0 && a.x <= b.x1 && a.t[0] > 0.7);
-        if (boost) { acc += 2600 * Math.max(0, 1 - car.v / 1750); if (!car.boosted) { car.boosted = true; Fun.sfx.zap(); fx.pop("BOOST!", W * 0.65, H * 0.3, "#4df2ff", 30); points(25); } } else car.boosted = false;
+        if (boost) { acc += 2600 * Math.max(0, 1 - car.v / 1750); if (!car.boosted) { car.boosted = true; Fun.sfx.zap(); fx.pop("BOOST!", W * 0.65, H * 0.3, "#4df2ff", 30); rfx.flash("#4df2ff", 0.3); points(25); } } else car.boosted = false;
         car.v += (acc + G * a.t[1] - car.v * 0.06) * h;
         car.v = Math.max(-420, car.v);
         // does the track push hard enough to hold the car, or does it fly off?
@@ -323,7 +323,7 @@
       if (!best || time < best) S.best[lvl] = Math.round(time * 10) / 10;
       store.wheelsFinishes = (store.wheelsFinishes || 0) + 1;
       Hub.saveStore(); Hub.checkBadges();
-      Fun.sfx.tada(); Hub.confettiBurst(canvas);
+      Fun.sfx.tada(); Hub.confettiBurst(canvas); rfx.finish(stars === 3);
       const unlocked = CARS.filter(c => c.stars > totalStars() - (S.stars[lvl] - was) && c.stars <= totalStars());
       panelTitle.textContent = `🏁 ${"⭐".repeat(stars)}${"☆".repeat(3 - stars)}`;
       panelText.textContent = `${LEVELS[lvl].name} in ${time.toFixed(1)} s. Score ${score.toLocaleString("en")} (time bonus ${bonus})${topScore ? ": new best! 🏆" : `, best ${S.score[lvl].toLocaleString("en")}`}.` + (stars < 3 ? ` 3 stars: under ${t3.toFixed(1)} s.` : " Perfect run!") + (unlocked.length ? ` New car: ${unlocked.map(c => c.name).join(", ")}! 🎉` : "");
@@ -524,6 +524,8 @@
       dust.forEach(d2 => { ctx.fillStyle = `rgba(230,220,200,${0.6 - d2.t})`; ctx.beginPath(); ctx.arc(sx(d2.x), sy(d2.y), (4 + d2.t * 14) * cam.z, 0, 7); ctx.fill(); });
       for (let i = bits.length - 1; i >= 0; i--) { const b = bits[i]; b.t += dt; b.vy += G * dt; b.x += b.vx * dt; b.y += b.vy * dt; if (b.t > 1.2) { bits.splice(i, 1); continue; } ctx.fillStyle = b.col; ctx.fillRect(sx(b.x) - 4, sy(b.y) - 4, 8, 8); }
       fx.draw(ctx, dt);
+      rfx.nitro(state === "race" && ((keys.nitro && nitro > 0 && fuel > 0) || car.boosted));
+      rfx.draw(ctx, W, H, dt);
       drawHud();
     }
     let lastHud = "";
@@ -535,7 +537,7 @@
     }
     function update(dt){
       clock += dt;
-      if (state === "count") { if (clock > 2.1) { state = "race"; Fun.sfx.whoosh(); } }
+      if (state === "count") { if (clock > 2.1) { state = "race"; Fun.sfx.whoosh(); rfx.title("GO!", "#7dff9a"); } }
       else if (state === "race") {
         time += dt;
         const n = 4; for (let i = 0; i < n && state === "race"; i++) step(dt / n);

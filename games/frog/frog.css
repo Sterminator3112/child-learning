@@ -1,0 +1,28 @@
+/* Frog Hop: the road and river, with an arrow pad on touch screens. */
+.fg-box{ width: min(100%, calc((100vh - 110px) * 624 / 654)); }
+@media (pointer: coarse){ .fg-box{ width: min(100%, calc((100vh - 200px) * 624 / 654)); } }
+#fgCanvas:focus{ outline: none; }
+#fgCanvas{
+  display: block; width: 100%; aspect-ratio: 624 / 654; height: auto;
+  border-radius: 12px; border: 2px solid rgba(255,255,255,0.25);
+  background: #2e7d32; touch-action: none;
+}
+.fg-panel{ background: rgba(0,0,0,0.65); }
+.fg-pad{ display: none; grid-template-columns: repeat(3, 64px); gap: 6px; justify-content: center; }
+.fg-pad .btn{ padding: 12px 0; font-size: 18px; color: #fff; border-color: rgba(255,255,255,0.4); user-select: none; -webkit-user-select: none; touch-action: none; }
+.fg-pad [data-dir="up"]{ grid-column: 2; }
+.fg-pad [data-dir="left"]{ grid-column: 1; grid-row: 2; }
+.fg-pad [data-dir="down"]{ grid-column: 2; grid-row: 2; }
+.fg-pad [data-dir="right"]{ grid-column: 3; grid-row: 2; }
+@media (pointer: coarse){
+  .fg-pad{ display: grid; }
+}
+/* phone held sideways: the steering pad sits next to the maze instead of under it */
+@media (pointer: coarse) and (max-height: 500px) and (orientation: landscape){
+  .fg-box{
+    width: auto; display: grid; grid-template-columns: auto auto; align-items: center; gap: 6px 16px;
+  }
+  .fg-box .game-hud{ grid-column: 1 / -1; }
+  .fg-box .game-stage{ width: calc((100vh - 60px) * 624 / 654); width: calc((100dvh - 60px) * 624 / 654); }
+  .fg-pad{ grid-template-columns: repeat(3, 54px); }
+}

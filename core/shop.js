@@ -16,13 +16,7 @@
       { id: "purple", name: "Purple storm", price: 60, colors: ["#8b3dff"] },
       { id: "fire", name: "Fireball", price: 100, colors: ["#ff6a00"] },
       { id: "mint", name: "Mint ice", price: 150, colors: ["#18d6a0"] },
-      { id: "gold", name: "Solid gold", price: 250, colors: ["#ffc400"] } ] },
-    { slot: "golfBall", title: "Golf ball", icon: "⛳", game: "minigolf", items: [
-      { id: "white", name: "Classic white", price: 0, colors: ["#ffffff", "#c9d2e3"] },
-      { id: "pink", name: "Bubblegum", price: 60, colors: ["#ffd1ec", "#ff5fb8"] },
-      { id: "neon", name: "Neon green", price: 100, colors: ["#eaffd0", "#6fe82a"] },
-      { id: "blue", name: "Sky blue", price: 150, colors: ["#d6ecff", "#3a8dff"] },
-      { id: "gold", name: "Golden", price: 250, colors: ["#fff2b3", "#ffbf00"] } ] }
+      { id: "gold", name: "Solid gold", price: 250, colors: ["#ffc400"] } ] }
   ];
   const owns = (slot, id) => id === SHOP.find(s => s.slot === slot).items[0].id || !!(store.owned && store.owned[slot + ":" + id]);
   function cosmetic(slot){

@@ -1,0 +1,8 @@
+/* Rainbow Bricks: the playing field. */
+.br-box{ width: min(100%, 800px, calc((100vh - 120px) * 4 / 3)); }
+#brCanvas{
+  display: block; width: 100%; aspect-ratio: 4 / 3; height: auto;
+  border-radius: 12px; border: 2px solid rgba(255,255,255,0.25); background: #14082e; touch-action: none; cursor: none;
+}
+#brCanvas:focus{ outline: none; }
+.br-panel{ background: rgba(10,6,30,0.6); }

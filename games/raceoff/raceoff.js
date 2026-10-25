@@ -191,7 +191,7 @@
     const $ = id => document.getElementById(id);
     const overlay = $("roOverlay"), canvas = $("roCanvas"), ctx = canvas.getContext("2d");
     const panel = $("roPanel"), titleEl = $("roTitle"), textEl = $("roText"), playBtn = $("roPlayBtn"), body = $("roBody");
-    const fx = Fun.pops(), music = WheelsMusic();
+    const fx = Fun.pops(), music = WheelsMusic(), rfx = RaceFX();   // rfx: the race WOW kit (nitro warp, titles, flashes, fireworks)
     const W = 960, H = 540;
 
     let open = false, running = false, last = 0, clock = 0, scale = 1;
@@ -423,6 +423,7 @@
       combo = comboT > 0 ? combo + 1 : 1; comboT = 6; stunts++; bestCombo = Math.max(bestCombo, combo);
       store.raceoffStunts = (store.raceoffStunts || 0) + 1;
       const mul = Math.min(5, combo), got = pts * mul; runCoins += got; Fun.sfx.tada();
+      if (mul >= 2) { rfx.title(`COMBO ×${mul}!`, mul >= 4 ? "#ff4dd2" : "#ffd84d", 0.3); if (mul >= 3) rfx.fireworks(mul - 1); }
       fx.pop(`${name} +${got}${mul > 1 ? "  x" + mul : ""}`, W / 2, H * 0.28, col, 34);
     }
     function landed(){
@@ -539,7 +540,7 @@
       lastRun = { d: rec.concat([[Math.round(car.x), Math.round(car.y), Math.round(car.a * 100)]]), m, why, time, car: S.car, finish: finished, label: mode === "custom" ? `my own track "${R().tracks[pickTrack].name}"` : mode === "career" ? `level ${lvl.n + 1}` : mode === "daily" ? "today's daily track" : "an endless run" };
       stats = { m, why, earned, boosted, bonus, runCoins, newStars, newBest, time, dailyNote, stunts, bestCombo, rivalWon, mission: missions.map(mi => ({ text: mi.text, ok: missionDone(mi) })) };
       Hub.saveStore(); Hub.checkBadges();
-      if (finished) { Fun.sfx.tada(); Hub.confettiBurst(canvas); } else { Fun.sfx.crash(); if (store.sound !== false && why !== "fuel") music.sting(); if (why === "crash") fx.pop("CRASH!", W / 2, H * 0.35, "#ff6b6b", 48); if (why === "fuel") fx.pop("OUT OF FUEL!", W / 2, H * 0.35, "#ff6b4a", 44); if (why === "fell") fx.pop("SPLASH!", W / 2, H * 0.35, "#7fd0ff", 44); }
+      if (finished) { Fun.sfx.tada(); Hub.confettiBurst(canvas); rfx.finish(!rival || !rivalWon); } else { Fun.sfx.crash(); rfx.flash(why === "fell" ? "#7fd0ff" : "#ff3b3b", 0.55); if (store.sound !== false && why !== "fuel") music.sting(); if (why === "crash") fx.pop("CRASH!", W / 2, H * 0.35, "#ff6b6b", 48); if (why === "fuel") fx.pop("OUT OF FUEL!", W / 2, H * 0.35, "#ff6b4a", 44); if (why === "fell") fx.pop("SPLASH!", W / 2, H * 0.35, "#7fd0ff", 44); }
       setTimeout(() => showResults(), finished ? 1400 : 1100);
     }
 
@@ -572,7 +573,7 @@
             if (p.t === "coin") { runCoins += cm; Fun.sfx.coin(); }
             else if (p.t === "gold") { runCoins += 5 * cm; Fun.sfx.coin(); fx.pop("+" + 5 * cm, W * 0.5, 120, "#ffd84d", 24); }
             else if (p.t === "fuel") { fuel = Math.min(1, fuel + 0.5); Fun.sfx.ding(); fx.pop("FUEL!", W * 0.5, 120, "#ff6b4a", 30); }
-            else { nitro = Math.min(1, nitro + 0.5); Fun.sfx.zap(); fx.pop("NITRO!", W * 0.5, 120, "#4df2ff", 30); }
+            else { nitro = Math.min(1, nitro + 0.5); Fun.sfx.zap(); fx.pop("NITRO!", W * 0.5, 120, "#4df2ff", 30); rfx.flash("#4df2ff", 0.3); }
           }
         });
         if (car.x < 60 && car.vx < 0) { car.x = 60; car.vx = 0; }
@@ -855,7 +856,10 @@
       drawCar();
       drawWeather();
       sparks.forEach(s => { ctx.fillStyle = "#ffd84d"; ctx.fillRect(sx(s.x), sy(s.y), 3, 3); });
-      fx.draw(ctx, dt); drawHud();
+      fx.draw(ctx, dt);
+      rfx.nitro(state === "race" && keys.nitro && nitro > 0 && fuel > 0);
+      rfx.draw(ctx, W, H, dt);
+      drawHud();
     }
     function drawEditor(){
       const P = edTrack.pts, gaps = new Set(edTrack.gaps);

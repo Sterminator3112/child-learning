@@ -1,0 +1,29 @@
+/* Memory Match: the card grid (cards flip over in 3D) and the choices on the start panel. */
+.mm-box{ width: min(100%, 760px); }
+.mm-stage{ min-height: min(70vh, 520px); }
+.mm-grid{
+  display: grid; grid-template-columns: repeat(var(--cols, 4), 1fr); gap: 8px;
+  width: min(100%, calc((100vh - 170px) * var(--cols, 4) / 4.4)); margin: 0 auto; padding: 4px;
+}
+.mm-card{
+  position: relative; aspect-ratio: 1; border: 0; padding: 0; background: none; cursor: pointer;
+  transform-style: preserve-3d; transition: transform 0.35s; font: inherit;
+}
+.mm-card.up{ transform: rotateY(180deg); }
+.mm-front, .mm-back{
+  position: absolute; inset: 0; display: grid; place-items: center; border-radius: 12px; backface-visibility: hidden;
+  font-size: clamp(22px, 6vw, 46px);
+}
+.mm-back{ background: linear-gradient(135deg, #ff4d6d, #ff9f1c, #ffe14d, #4dd96b, #4db8ff, #b26bff); color: #fff; font-weight: 800; text-shadow: 0 2px 0 rgba(0,0,0,0.3); border: 3px solid rgba(255,255,255,0.6); }
+.mm-front{ background: #fff; transform: rotateY(180deg); border: 3px solid #ccd; }
+.mm-card.done .mm-front{ background: #e4ffe9; border-color: #4dd96b; animation: mm-pop 0.4s; }
+@keyframes mm-pop{ 50%{ transform: rotateY(180deg) scale(1.12); } }
+.mm-card:focus-visible{ outline: 3px solid #ffe14d; outline-offset: 2px; border-radius: 12px; }
+.mm-panel{ background: rgba(10,14,40,0.85); }
+.mm-choose{ display: flex; flex-direction: column; gap: 8px; }
+.mm-row{ display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.mm-opt{
+  font: 700 14px "Karla", system-ui, sans-serif; color: #fff; background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.35); border-radius: 999px; padding: 6px 12px; cursor: pointer;
+}
+.mm-opt.on{ background: #ffd84d; color: #1a1030; border-color: #ffd84d; }

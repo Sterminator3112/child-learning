@@ -1,0 +1,7 @@
+/* Rocket Lander: the sky, and the boost buttons on touch screens. */
+#ldCanvas{
+  display: block; width: 100%; aspect-ratio: 16 / 9; height: auto;
+  border-radius: 12px; border: 2px solid rgba(255,255,255,0.25); background: #05060f; touch-action: none;
+}
+#ldCanvas:focus{ outline: none; }
+.ld-panel{ background: rgba(4,6,20,0.6); }

@@ -125,11 +125,11 @@
   // the games are grouped on their page; anything new and not listed here goes under "More games"
   const CATEGORIES = [
     { title: "🏁 Racing", ids: ["raceoff", "wheels", "turbo"] },
-    { title: "⚽ Sports", ids: ["soccer", "hoops", "pool", "bowling", "minigolf", "ping-pong"] },
-    { title: "🗺️ Adventure", ids: ["forest", "parkour", "robot-tag", "tag-rush", "zombie-blaster", "egg-heist", "brainrot-heist"] },
-    { title: "👾 Arcade", ids: ["pacman", "pacman-3d", "tower", "fishing"] },
-    { title: "🧱 Build & grow", ids: ["blocks", "garden", "potato-tycoon"] },
-    { title: "🧠 Brain games", ids: ["chess"] }
+    { title: "⚽ Sports", ids: ["soccer", "hoops", "pool", "bowling", "ping-pong"] },
+    { title: "🗺️ Adventure", ids: ["forest", "parkour", "robot-tag", "tag-rush", "zombie-blaster", "egg-heist"] },
+    { title: "👾 Arcade", ids: ["pacman", "pacman-3d", "snake", "lander", "blockdrop", "bricks", "frog", "tower", "fishing"] },
+    { title: "🧱 Build & grow", ids: ["blocks", "garden", "storm-fire"] },
+    { title: "🧠 Brain games", ids: ["chess", "memory"] }
   ];
 
   /* ---------------- trophies: every app brings its own, each section has a shelf ---------------- */
@@ -357,7 +357,7 @@
   });
 
   // what the Grown-ups page needs to know about the apps and the trophies
-  const appList = () => apps.map(a => ({ id: a.id, section: a.section, title: a.title, icon: a.icon, stat: a.stat ? a.stat() : "", badges: a.badges.length, earned: a.badges.filter(b => store.badges[b.id]).length }));
+  const appList = () => apps.map(a => ({ id: a.id, section: a.section, title: a.title, icon: a.icon, blurb: a.blurb, stat: a.stat ? a.stat() : "", badges: a.badges.length, earned: a.badges.filter(b => store.badges[b.id]).length }));
   const toast = (icon, line1, line2) => showToast({ icon, name: line2 }, line1);
-  window.Hub = { store, saveStore, formatTime, confettiBurst, checkBadges, register, leave, page, appList, toast, STORE_KEY, Profiles, comfort, setComfort, lessMotion: () => reduceMotion.matches };
+  window.Hub = { store, saveStore, formatTime, confettiBurst, checkBadges, register, leave, page, appList, toast, STORE_KEY, Profiles, CATEGORIES, comfort, setComfort, lessMotion: () => reduceMotion.matches };
 })();

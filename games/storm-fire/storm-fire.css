@@ -1,0 +1,32 @@
+/* Storm Fire: the campfire picture, the storm button over it, and the shop row underneath. */
+.sf-box{ width: min(960px, 100%, calc((100vh - 230px) * 16 / 9)); }
+#sfCanvas{
+  display: block; width: 100%; aspect-ratio: 16 / 9; height: auto;
+  border-radius: 12px; border: 2px solid rgba(255,255,255,0.25); background: #0d1838; touch-action: manipulation;
+}
+#sfCanvas:focus{ outline: none; }
+.sf-storm-btn{
+  position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 3;
+  max-width: 94%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: #4a5470; color: #fff; font-weight: 800; border: 2px solid rgba(255,255,255,0.4);
+}
+.sf-storm-btn.ready{ background: #ff7a1a; animation: sf-pulse 1s ease-in-out infinite; }
+@keyframes sf-pulse{ 50%{ box-shadow: 0 0 22px 6px #ffb347; } }
+.sf-panel-btns{ display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.sf-shop{ display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.sf-item{
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 10px; border-radius: 10px; cursor: pointer; font: inherit; color: #fff;
+  background: #6b3b1a; border: 2px solid #ffb347;
+}
+.sf-item.up{ background: #1d3d63; border-color: #7df9ff; }
+.sf-item b{ font-size: 14px; white-space: nowrap; }
+.sf-item span{ font-size: 11.5px; opacity: 0.85; white-space: nowrap; }
+.sf-item:disabled{ opacity: 0.45; cursor: default; }
+.sf-item.locked{ background: #333; border-color: #555; }
+@media (max-width: 640px), (max-height: 500px){
+  .sf-item{ padding: 4px 7px; }
+  .sf-item b{ font-size: 12px; }
+  .sf-item span{ font-size: 10px; }
+  .sf-storm-btn{ font-size: 12px; padding: 6px 10px; bottom: 6px; }
+}

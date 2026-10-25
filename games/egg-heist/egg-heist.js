@@ -1,8 +1,8 @@
-/* Egg Heist and Brainrot Heist: games like Steal An Egg and Steal a Brainrot, the biggest games on Roblox.
-   Eggs (or brainrots) ride along a conveyor belt in the middle of the map. Buy them and get them home to your
+/* Egg Heist: a game like Steal An Egg, one of the biggest games on Roblox.
+   Eggs ride along a conveyor belt in the middle of the map. Buy them and get them home to your
    base, and they make money every second. Then the fun part: sneak into the other players' bases, grab their
    best one and run home with it before they catch you! They'll try the same on you, so lock your door and
-   keep a bat handy. Both games run on the same engine (makeHeist), each with its own things to collect.
+   keep a bat handy. The engine (makeHeist) takes the things to collect as a config (EGG_GAME).
    Everything is drawn on a plain 2D canvas through a small 3D camera behind your blocky Roblox-style player. */
 (function(){
   "use strict";
@@ -83,51 +83,7 @@
     ]
   };
 
-  /* ---------------- Brainrot Heist: the Italian brainrot characters, drawn from emoji ----------------
-     Each one is a big emoji with little extra ones stuck on: [emoji, x, y, size] (x and y in body sizes) */
-  const BRAINROT_GAME = {
-    id: "brainrot-heist", key: "brainrotHeist", pfx: "br", title: "Brainrot Heist", icon: "🧠", kind: "brainrot", hatch: false, walkHome: true,
-    word: "brainrot", start: "noobini",
-    bots: [["noobini", "lirili", "trippi", null, "boneca"], ["timcheese", "patapim", null, "noobini", null, "cappuccino"], ["lirili", null, "chimpanzini", "trippi"]],
-    blurb: "Like Steal a Brainrot on Roblox: buy Tralalero Tralala, Tung Tung Tung Sahur and friends, and steal the best ones!",
-    intro: "Brainrots ride along the belt in the middle. Walk up and press E to buy one, and it walks home to your base by itself and makes money every second! Then sneak into the other bases, STEAL their best brainrot and run home with it before they catch you. Lock your door, and bonk thieves with your bat! 🏏",
-    tip: "🧠 Buy a brainrot on the belt with E: it walks home by itself!",
-    rarity: {
-      common:    { name: "Common",       colour: "#e6e6e6", weight: 55 },
-      rare:      { name: "Rare",         colour: "#4da6ff", weight: 22 },
-      epic:      { name: "Epic",         colour: "#c27bff", weight: 12 },
-      legendary: { name: "Legendary",    colour: "#ffc93c", weight: 6 },
-      mythic:    { name: "Mythic",       colour: "#ff4d6d", weight: 3.2 },
-      god:       { name: "Brainrot God", colour: "#ffe14d", weight: 1.4, rainbow: true },
-      secret:    { name: "SECRET",       colour: "#ffffff", weight: 0.4, rainbow: true }
-    },
-    rank: ["common", "rare", "epic", "legendary", "mythic", "god", "secret"],
-    items: [
-      { id: "noobini",     name: "Noobini Pizzanini",         r: "common",    price: 25,      income: 1,     em: "🍕", acc: [["👀", 0, -0.1, 0.5]] },
-      { id: "lirili",      name: "Lirilì Larilà",             r: "common",    price: 60,      income: 2,     em: "🐘", acc: [["🌵", 0.55, 0.05, 0.6], ["🩴", 0, 0.8, 0.45]] },
-      { id: "timcheese",   name: "Tim Cheese",                r: "common",    price: 110,     income: 4,     em: "🐭", acc: [["🧀", 0.55, 0.45, 0.55]] },
-      { id: "trippi",      name: "Trippi Troppi",             r: "rare",      price: 300,     income: 9,     em: "🦐", acc: [["🐱", 0, -0.55, 0.6]] },
-      { id: "boneca",      name: "Boneca Ambalabu",           r: "rare",      price: 550,     income: 15,    em: "🐸", acc: [["🛞", 0, 0.7, 0.6]] },
-      { id: "patapim",     name: "Brr Brr Patapim",           r: "epic",      price: 1400,    income: 34,    em: "🌳", acc: [["🐒", 0, 0.25, 0.6]] },
-      { id: "cappuccino",  name: "Cappuccino Assassino",      r: "epic",      price: 2400,    income: 55,    em: "☕", acc: [["🗡️", 0.6, 0.15, 0.5], ["🥷", 0, -0.7, 0.45]] },
-      { id: "chimpanzini", name: "Chimpanzini Bananini",      r: "legendary", price: 7000,    income: 140,   em: "🍌", acc: [["🐵", 0, -0.5, 0.6]] },
-      { id: "ballerina",   name: "Ballerina Cappuccina",      r: "legendary", price: 11000,   income: 210,   em: "☕", acc: [["🩰", 0, 0.8, 0.5], ["🎀", 0, -0.75, 0.45]] },
-      { id: "frigo",       name: "Frigo Camelo",              r: "mythic",    price: 30000,   income: 520,   em: "🐫", acc: [["🧊", 0.1, 0.35, 0.6]] },
-      { id: "bombardiro",  name: "Bombardiro Crocodilo",      r: "mythic",    price: 50000,   income: 800,   em: "🐊", acc: [["✈️", 0, -0.5, 0.8], ["💣", 0, 0.7, 0.4]] },
-      { id: "tralalero",   name: "Tralalero Tralala",         r: "god",       price: 150000,  income: 2200,  em: "🦈", acc: [["👟", -0.3, 0.75, 0.4], ["👟", 0.3, 0.75, 0.4]] },
-      { id: "tungtung",    name: "Tung Tung Tung Sahur",      r: "god",       price: 240000,  income: 3300,  em: "🪵", acc: [["😐", 0, -0.15, 0.45], ["🏏", 0.6, 0.2, 0.6]] },
-      { id: "vaca",        name: "La Vaca Saturno Saturnita", r: "secret",    price: 800000,  income: 9000,  em: "🐄", acc: [["🪐", 0, -0.75, 0.6]], glow: "#c77dff" },
-      { id: "strawberry",  name: "Strawberry Elephant",       r: "secret",    price: 1500000, income: 15000, em: "🍓", acc: [["🐘", 0, 0.05, 0.55]], glow: "#ff6bd6" }
-    ],
-    badges: [
-      { id: "brSteal",   icon: "🥷", name: "Brainrot Thief", desc: "Steal a brainrot in Brainrot Heist",  test: g => (g.S().steals || 0) >= 1 },
-      { id: "brGod",     icon: "🦈", name: "Brainrot God",   desc: "Own a Brainrot God (or better)",      test: g => g.owns(d => g.rankOf(d) >= 5) },
-      { id: "brSecret",  icon: "🌌", name: "SECRET Rizz",    desc: "Own a Secret brainrot",               test: g => g.owns(d => d.r === "secret") },
-      { id: "brRebirth", icon: "🔁", name: "Brainrot Reborn", desc: "Rebirth in Brainrot Heist",          test: g => (g.S().rebirths || 0) >= 1 }
-    ]
-  };
-
-  [EGG_GAME, BRAINROT_GAME].forEach(makeHeist);
+  makeHeist(EGG_GAME);
 
   function makeHeist(cfg){
     const S = () => (store[cfg.key] = store[cfg.key] || { cash: 100, slots: null, rebirths: 0, steals: 0, earned: 0 });
@@ -192,7 +148,7 @@
       const fx = Fun.pops(), tip = Fun.hint(canvas.parentElement);
 
       let open = false, running = false, last = 0, clock = 0, saveT = 0;
-      let chars = [], belt = [], beltT = 0, bases = [], walkers = [];   // walkers: brainrots you bought, walking home
+      let chars = [], belt = [], beltT = 0, bases = [], walkers = [];   // walkers: things you bought walking home by themselves (when cfg.walkHome)
       let me = null, prompt = null, msg = null;
       const keys = { up: false, down: false, left: false, right: false, sleft: false, sright: false, jump: false };
       const stick = Fun.joystick(canvas.parentElement);   // on phones: push up to walk, sideways to turn
@@ -290,7 +246,7 @@
       }
 
       /* ---------------- buying, stealing, placing ---------------- */
-      // a free pedestal (one a brainrot is already walking to doesn't count)
+      // a free pedestal (one something is already walking to doesn't count)
       function emptySlot(b){ return b.slots.findIndex((s, i) => !s && !(b.owner === 0 && walkers.some(w => w.k === i))); }
       function placeAt(b, k, carry){ b.slots[k] = { def: carry.def, hatched: carry.hatched, hatchT: carry.hatchT, cash: 0 }; }
       function say(c, text, colour){ const p = proj(c.x, c.y + 3.6, c.z); if (p) fx.pop(text, p.x, p.y, colour || "#ffffff", 20); }
@@ -310,7 +266,7 @@
           belt.splice(belt.indexOf(p.egg), 1);
           const col = RARITY[p.egg.def.r].rainbow ? "#ffe14d" : RARITY[p.egg.def.r].colour;
           if (cfg.walkHome) {
-            // like in Steal a Brainrot: it hops off the belt and walks home to a free pedestal by itself
+            // with cfg.walkHome it hops off the belt and walks home to a free pedestal by itself
             const w = { i: 0, x: Math.sign(me.x || 1) * (BELT_HALF + 0.4), z: p.egg.z, y: 0, vy: 0, yaw: 0, walk: 0, moving: false, carry: null,
               bat: 0, stun: 0, cd: 0, speed: 5.5, path: [], def: p.egg.def, k: emptySlot(home) };
             const [hx, hz] = toWorld(home, ...PEDESTALS[w.k]);
@@ -543,7 +499,7 @@
         }
         // the robots
         chars.forEach(c => { if (c !== me) stepBot(c, dt); });
-        // brainrots walking home
+        // things walking home
         walkers = walkers.filter(w => {
           if (!followPath(w, dt)) return true;
           placeAt(home, w.k, { def: w.def, hatched: false, hatchT: HATCH_TIME });
@@ -658,30 +614,7 @@
         ctx.beginPath(); ctx.arc(m.x, m.y - r * 2.2, r * 2.4, 0.25 * Math.PI, 0.75 * Math.PI); ctx.stroke(); ctx.lineCap = "butt";
       }
       // an egg (or the pet that hatched out of it), standing upright, facing you
-      // a brainrot: a big emoji with little ones stuck on, bobbing about
-      function drawBrainrot(e, x, y, z, size, walking){
-        const p = proj(x, y, z);
-        if (!p) return;
-        const def = e.def, r = size * p.s * 1.1;
-        if (r < 1.5) return;
-        const rank = rankOf(def);
-        if (rank >= 4 || def.glow) {
-          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2.4);
-          g.addColorStop(0, (def.glow || (RARITY[def.r].rainbow ? "#ffe14d" : RARITY[def.r].colour)) + "99"); g.addColorStop(1, "rgba(255,255,255,0)");
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, r * 2.4, 0, 7); ctx.fill();
-        }
-        const t = clock * (walking ? 10 : 4) + x * 3 + z;
-        const bob = Math.abs(Math.sin(t)) * r * (walking ? 0.3 : 0.15), tilt = Math.sin(t) * (walking ? 0.2 : 0.1);
-        ctx.save(); ctx.translate(p.x, p.y - bob); ctx.rotate(tilt);
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        const font = k => `${Math.max(6, Math.round(r * 2.2 * k))}px "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-        ctx.font = font(1); ctx.fillText(def.em, 0, 0);
-        def.acc.forEach(([em, ax, ay, k]) => { ctx.font = font(k); ctx.fillText(em, ax * r * 2, ay * r * 2); });
-        ctx.restore();
-        if (rank >= 4) { const a = clock * 4 + x; ctx.fillStyle = "#fff"; ctx.font = `${Math.round(r * 0.7)}px sans-serif`; ctx.textAlign = "center"; ctx.fillText("✦", p.x + Math.cos(a) * r * 1.4, p.y + Math.sin(a) * r * 1.2); }
-      }
       function drawEggAt(e, x, y, z, size, walking){
-        if (cfg.kind === "brainrot") { drawBrainrot(e, x, y, z, size, walking); return; }
         const p = proj(x, y, z);
         if (!p) return;
         const def = e.def, r = size * p.s;
@@ -897,7 +830,7 @@
         playBtn.focus();
       }
       function closeGame(){
-        // brainrots still on their way home get there straight away
+        // things still on their way home get there straight away
         walkers.forEach(w => placeAt(bases[0], w.k, { def: w.def, hatched: false, hatchT: HATCH_TIME })); walkers = [];
         if (open && bases.length) save();
         open = false; running = false;

@@ -11,11 +11,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Learn & Play">
-<meta name="description" content="Learning and games for a 5th grader: maths, English, German, NMG and music practice with worked answers, 10-finger typing, plus Robot Tag, Pac-Man, Pac-Man 3D, Zombie Blaster, Parkour Run, Turbo Track, Fishing Beach, Tag Rush and Potato Tycoon.">
+<meta name="description" content="Learning and games for a 5th grader: maths, English, German, French, NMG and music practice with worked answers, 10-finger typing, plus Robot Tag, Pac-Man, Pac-Man 3D, Rainbow Snake, Rocket Lander, Block Drop, Rainbow Bricks, Frog Hop, Memory Match, Storm Fire, Zombie Blaster, Parkour Run, Turbo Track, Fishing Beach, Tag Rush.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="core/core.css">
 <link rel="stylesheet" href="games/game-frame.css">
+<link rel="stylesheet" href="core/tour.css">
 
 <!-- apps: each one is a folder. To add one, add its stylesheet here and its script at the bottom. -->
 <link rel="stylesheet" href="learning/notebook.css">
@@ -25,6 +26,12 @@
 <link rel="stylesheet" href="games/robot-tag/robot-tag.css">
 <link rel="stylesheet" href="games/pacman/pacman.css">
 <link rel="stylesheet" href="games/pacman-3d/pacman-3d.css">
+<link rel="stylesheet" href="games/snake/snake.css">
+<link rel="stylesheet" href="games/lander/lander.css">
+<link rel="stylesheet" href="games/blockdrop/blockdrop.css">
+<link rel="stylesheet" href="games/bricks/bricks.css">
+<link rel="stylesheet" href="games/frog/frog.css">
+<link rel="stylesheet" href="games/memory/memory.css">
 <link rel="stylesheet" href="games/zombie-blaster/zombie-blaster.css">
 <link rel="stylesheet" href="games/parkour/parkour.css">
 <link rel="stylesheet" href="games/blocks/blocks.css">
@@ -32,16 +39,15 @@
 <link rel="stylesheet" href="games/fishing/fishing.css">
 <link rel="stylesheet" href="games/ping-pong/ping-pong.css">
 <link rel="stylesheet" href="games/tag-rush/tag-rush.css">
-<link rel="stylesheet" href="games/potato-tycoon/potato-tycoon.css">
 <link rel="stylesheet" href="games/egg-heist/egg-heist.css">
 <link rel="stylesheet" href="games/tower/tower.css">
 <link rel="stylesheet" href="games/garden/garden.css">
 <link rel="stylesheet" href="games/forest/forest.css">
+<link rel="stylesheet" href="games/storm-fire/storm-fire.css">
 <link rel="stylesheet" href="games/soccer/soccer.css">
 <link rel="stylesheet" href="games/hoops/hoops.css">
 <link rel="stylesheet" href="games/pool/pool.css">
 <link rel="stylesheet" href="games/bowling/bowling.css">
-<link rel="stylesheet" href="games/minigolf/minigolf.css">
 <link rel="stylesheet" href="games/chess/chess.css">
 <link rel="stylesheet" href="games/wheels/wheels.css">
 <link rel="stylesheet" href="games/raceoff/raceoff.css">
@@ -344,6 +350,8 @@
 <script src="learning/english/english.js"></script>
 <script src="learning/german/dash.js"></script>
 <script src="learning/german/german.js"></script>
+<script src="learning/french/tour.js"></script>
+<script src="learning/french/french.js"></script>
 <script src="learning/nmg/explore.js"></script>
 <script src="learning/nmg/nmg.js"></script>
 <script src="learning/musik/buehne.js"></script>
@@ -354,6 +362,12 @@
 <script src="games/robot-tag/robot-tag.js"></script>
 <script src="games/pacman/pacman.js"></script>
 <script src="games/pacman-3d/pacman-3d.js"></script>
+<script src="games/snake/snake.js"></script>
+<script src="games/lander/lander.js"></script>
+<script src="games/blockdrop/blockdrop.js"></script>
+<script src="games/bricks/bricks.js"></script>
+<script src="games/frog/frog.js"></script>
+<script src="games/memory/memory.js"></script>
 <script src="games/zombie-blaster/zombie-blaster.js"></script>
 <script src="games/parkour/parkour.js"></script>
 <script src="games/blocks/world.js"></script>
@@ -362,6 +376,7 @@
 <script src="games/blocks/gl.js"></script>
 <script src="games/blocks/soft.js"></script>
 <script src="games/blocks/blocks.js"></script>
+<script src="games/race-fx.js"></script>
 <script src="games/turbo-track/track.js"></script>
 <script src="games/turbo-track/sky.js"></script>
 <script src="games/turbo-track/turbo-track.js"></script>
@@ -371,16 +386,15 @@
 <script src="games/ping-pong/ping-pong.js"></script>
 <script src="games/blocky.js"></script>
 <script src="games/tag-rush/tag-rush.js"></script>
-<script src="games/potato-tycoon/potato-tycoon.js"></script>
 <script src="games/egg-heist/egg-heist.js"></script>
 <script src="games/tower/tower.js"></script>
 <script src="games/garden/garden.js"></script>
 <script src="games/forest/forest.js"></script>
+<script src="games/storm-fire/storm-fire.js"></script>
 <script src="games/soccer/soccer.js"></script>
 <script src="games/hoops/hoops.js"></script>
 <script src="games/pool/pool.js"></script>
 <script src="games/bowling/bowling.js"></script>
-<script src="games/minigolf/minigolf.js"></script>
 <script src="games/chess/engine.js"></script>
 <script src="games/chess/chess.js"></script>
 <script src="games/wheels/music.js"></script>
@@ -388,6 +402,7 @@
 <script src="games/raceoff/car.js"></script>
 <script src="games/raceoff/raceoff.js"></script>
 <script src="core/grownups.js"></script>
+<script src="core/tour.js"></script>
 <script>
   // keep a copy of the app for offline use (only over https or localhost, where browsers allow it)
   if ("serviceWorker" in navigator) window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });

@@ -269,7 +269,7 @@
     let open = false, state = "garage"; // garage · countdown · racing · done
     let last = 0, raceT = 0, countT = 0, cars = [], me = null, sparks = [], msg = null;
     const keys = { left: false, right: false, gas: false, brake: false };
-    const fx = Fun.pops();
+    const fx = Fun.pops(), rfx = RaceFX();   // rfx: the race WOW kit (nitro warp, titles, flashes, fireworks)
     let bonkT = 0, scrapeT = 0, lastPos = null, lastLit = 0;
     const popMid = (text, colour, size, y) => fx.pop(text, W / 2, y || H * 0.62, colour, size || 38);
 
@@ -373,7 +373,7 @@
       }
       c.lat = (c.x - s.x) * s.nx + (c.y - s.y) * s.ny;
 
-      if (s.boost && c.v > 0) { if (c.boostT <= 0) { say("⚡ BOOST!", 0.8); popMid("ZOOM!", "#ffe14d", 44); Fun.sfx.zap(); } c.boostT = 1.4; }
+      if (s.boost && c.v > 0) { if (c.boostT <= 0) { say("⚡ BOOST!", 0.8); rfx.title("ZOOM!", "#ffe14d", 0.35); rfx.flash("#ffe14d", 0.3); Fun.sfx.zap(); } c.boostT = 1.4; }
 
       // the jump and the loop: fast enough and you ride it, too slow and you go back for another try
       const zone = s.zone;
@@ -452,7 +452,7 @@
         countT -= dt;
         const lit = Math.min(3, Math.floor(3.2 - countT) + 1);
         if (lit !== lastLit) { lastLit = lit; Fun.sfx.beep(); }
-        if (countT <= 0) { state = "racing"; say("GO GO GO! 🏁", 1); Fun.sfx.honk(); lastPos = null; }
+        if (countT <= 0) { state = "racing"; say("GO GO GO! 🏁", 1); rfx.title("GO!", "#7dff9a"); Fun.sfx.honk(); lastPos = null; }
         return;
       }
       if (state !== "racing" && state !== "done") return;
@@ -486,7 +486,8 @@
       order.sort((a, b) => (a.finishT ?? a.guessT) - (b.finishT ?? b.guessT));
       const place = order.indexOf(me) + 1;
       const won = place === 1;
-      if (won) { Fun.sfx.tada(); popMid("WINNER! 🏆", "#ffe14d", 50, H * 0.45); } else Fun.sfx.ding();
+      if (won) Fun.sfx.tada(); else Fun.sfx.ding();
+      rfx.finish(won);
       const id = C.layout.id;
       const newBest = !T.bestTimes[id] || me.finishT < T.bestTimes[id];
       if (won) { T.wins = (T.wins || 0) + 1; if (T.robots === "hard") T.hardWins = (T.hardWins || 0) + 1; }
@@ -796,6 +797,8 @@
       drawMinimap();
       if (state === "countdown") drawLights();
       fx.draw(ctx, frameDt);
+      rfx.nitro(state === "racing" && me && me.boostT > 0);
+      rfx.draw(ctx, W, H, frameDt);
       if (msg) {
         ctx.font = "800 30px 'Bricolage Grotesque', sans-serif"; ctx.textAlign = "center";
         ctx.lineWidth = 6; ctx.strokeStyle = "rgba(0,0,0,0.7)"; ctx.fillStyle = "#fff";
