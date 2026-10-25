@@ -33,15 +33,29 @@
         <header class="hub-head">
           <a class="back-link" href="#/">← Home</a>
           <h1>🛍️ Shop</h1>
-          <p class="tagline">Spend your coins on new looks. Earn coins with the daily challenges (+30 each, +50 for all three) and new trophies (+20 each).</p>
+          <p class="tagline">Spend your coins on new looks. Earn coins with the daily challenges (+30 each, +50 for all three), new trophies (+20 each) and study stars from Learning.</p>
           <p class="shop-coins" id="shopCoins"></p>
         </header>
         <div id="shopList"></div>
       </div>`;
       const listEl = host.querySelector("#shopList"), coinsEl = host.querySelector("#shopCoins");
+      // study stars from Learning can be swapped for coins, and buy Race Off's star-only car and paint
+      const STAR_COINS = 20;
+      function starsCard(){
+        const st = Study.balance(), boost = Study.boost();
+        return `<section class="shop-group shop-stars">
+          <h2>⭐ Study stars <span class="shop-try">${st} to spend</span></h2>
+          <p class="gu-note">Earn a ⭐ for every ${Study.PER_STAR} right answers in Learning and for every typing lesson passed. ${boost ? "📚 Study boost is on today: x1.5 coins in Race Off!" : `Get ${Study.BOOST_AT} answers right today (${Study.todayRight()} so far) to turn on the 📚 study boost: x1.5 coins in Race Off.`}</p>
+          <div class="shop-row">
+            <button class="btn small" type="button" data-stars="1" ${st < 1 ? "disabled" : ""}>Swap ⭐ 1 for 🪙 ${STAR_COINS}</button>
+            <button class="btn small" type="button" data-stars="5" ${st < 5 ? "disabled" : ""}>Swap ⭐ 5 for 🪙 ${STAR_COINS * 5}</button>
+            <a class="shop-try" href="#/games/raceoff">Star-only in Race Off: 🧠 Brainiac car and 🌌 Galaxy paint →</a>
+          </div>
+        </section>`;
+      }
       function render(){
-        coinsEl.textContent = `🪙 ${store.coins || 0} coins`;
-        listEl.innerHTML = SHOP.map(s => `
+        coinsEl.textContent = `🪙 ${store.coins || 0} coins · ⭐ ${Study.balance()} study stars`;
+        listEl.innerHTML = starsCard() + SHOP.map(s => `
           <section class="shop-group">
             <h2>${s.icon} ${s.title} <a class="shop-try" href="#/games/${s.game}">Play →</a></h2>
             <div class="shop-grid">${s.items.map(i => {
@@ -55,6 +69,8 @@
           </section>`).join("");
       }
       listEl.addEventListener("click", e => {
+        const sb = e.target.closest("button[data-stars]");
+        if (sb) { const n = +sb.dataset.stars; if (Study.spend(n)) { store.coins = (store.coins || 0) + n * STAR_COINS; Hub.saveStore(); if (window.Fun) Fun.sfx.coin(); Hub.confettiBurst(sb); render(); } return; }
         const b = e.target.closest("button[data-slot]"); if (!b) return;
         const slot = b.dataset.slot, item = SHOP.find(s => s.slot === slot).items.find(i => i.id === b.dataset.id);
         if (!owns(slot, item.id)) {

@@ -1,7 +1,10 @@
 /* Grown-ups: a page at #/grownups for parents.
    1. A progress report for the player who is on now: how much was practised the last 7 days, and for every
       subject how accurate the answers are in each topic, so you can see at a glance what needs more practice.
+   0. This week, every player: days practised, questions and how many were right (against last week), time in
+      learning and in games, the topics that need practice and the strong ones, ready to copy into a message.
    2. Players: rename or remove the family's players (each has their own progress).
+   5. Comfort: less motion and bigger buttons, for this device.
    3. Play-test notes: what the kids flagged with the 💬 button in a game, ready to copy and send.
    4. A backup: progress only lives in this browser, so here you can copy a "progress code" (or save it as a file)
       with every player in it, and paste it on another phone, tablet or computer to carry everything over.
@@ -131,6 +134,56 @@
     return html;
   }
 
+  /* ---------------- the weekly summary: every player, this week against last week ---------------- */
+  // a player's progress: the live store for the one playing, the saved copy for the others
+  const storeOf = id => id === P.data().active ? store : (() => { try { return JSON.parse(localStorage.getItem(P.keyOf(id))) || {}; } catch (e) { return {}; } })();
+  // where a subject keeps its progress inside a store (Fast Math keeps it at the top level)
+  const subjectData = (s, st) => { if (s.data === store) return st; const k = Object.keys(store).find(key => store[key] === s.data); return (k && st[k]) || {}; };
+  const mins = sec => { const m = Math.round((sec || 0) / 60); return m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${m} min`; };
+  function weekOf(st){
+    const subjects = (window.Notebook && Notebook.subjects) || [], all = lastDays(14), weeks = [all.slice(0, 7), all.slice(7)];
+    const sum = days => {
+      let a = 0, c = 0, lessons = 0, learn = 0, play = 0, active = 0;
+      days.forEach(d => {
+        let da = 0;
+        subjects.forEach(s => { const e = ((subjectData(s, st).log) || {})[d.key]; if (e) { a += e.a; c += e.c; da += e.a; } });
+        const t = st.typing && st.typing.log && st.typing.log[d.key]; if (t) { lessons += t.a; da += t.a; }
+        const tl = st.timeLog && st.timeLog[d.key]; if (tl) { learn += tl.learning || 0; play += tl.games || 0; }
+        if (da || (tl && (tl.learning || tl.games))) active++;
+      });
+      return { a, c, lessons, learn, play, active };
+    };
+    const topics = [];
+    subjects.forEach(s => { const d = subjectData(s, st); s.topics.forEach(t => { const e = d.topics && d.topics[t.id]; if (e && e.attempted >= 5) topics.push({ name: t.label, subject: s.title, p: Math.round(e.correct / e.attempted * 100), n: e.attempted }); }); });
+    topics.sort((x, y) => x.p - y.p);
+    const right = subjects.reduce((n, s) => n + Object.values(subjectData(s, st).topics || {}).reduce((m, t) => m + (t.correct || 0), 0), 0);
+    const stars = Math.max(0, Math.floor(right / 10) + Object.keys((st.typing && st.typing.best) || {}).length - (st.starsSpent || 0));
+    return { now: sum(weeks[1]), before: sum(weeks[0]), weak: topics.filter(t => t.p < 75).slice(0, 2), strong: topics.filter(t => t.p >= 85 && t.n >= 10).slice(-2).reverse(), stars };
+  }
+  function weeklyLine(p){
+    const w = weekOf(storeOf(p.id)), n = w.now, b = w.before, pc = (c, a) => a ? Math.round(c / a * 100) + "%" : "-";
+    return { p, w, text: `${p.name || "Player"}: practised ${n.active} of 7 days, ${n.a} questions (${pc(n.c, n.a)} right; last week ${b.a}, ${pc(b.c, b.a)}), learning ${mins(n.learn)}, games ${mins(n.play)}${n.lessons ? `, ${n.lessons} typing lessons` : ""}.` +
+      (w.weak.length ? ` Needs practice: ${w.weak.map(t => `${t.name} in ${t.subject} (${t.p}%)`).join(", ")}.` : "") +
+      (w.strong.length ? ` Strong: ${w.strong.map(t => `${t.name} (${t.p}%)`).join(", ")}.` : "") + ` ⭐ ${w.stars} study stars to spend.` };
+  }
+  function weekly(){
+    const lines = P.data().list.map(weeklyLine), arrow = (x, y) => x > y ? "▲" : x < y ? "▼" : "";
+    return `<h2>📋 This week, every player <small>the last 7 days, against the 7 before</small></h2>` + lines.map(({ p, w }) => {
+      const n = w.now, b = w.before;
+      return `<div class="gu-week"><h3>${esc(p.face || "🙂")} ${esc(p.name || "Player")}</h3>
+        <div class="gu-summary">
+          <div><b>${n.active}/7</b><span>days practised</span></div>
+          <div><b>${n.a} <small>${arrow(n.a, b.a)}</small></b><span>questions (last week ${b.a})</span></div>
+          <div><b>${n.a ? Math.round(n.c / n.a * 100) + "%" : "-"}</b><span>right${b.a ? ` (last week ${Math.round(b.c / b.a * 100)}%)` : ""}</span></div>
+          <div><b>${mins(n.learn)}</b><span>learning · games ${mins(n.play)}</span></div>
+        </div>
+        <p class="gu-note">${w.weak.length ? `Needs practice: <b>${w.weak.map(t => `${esc(t.name)}</b> in ${esc(t.subject)} (${t.p}%)`).join(", <b>")}. ` : "No weak topics yet. "}${w.strong.length ? `Strong: ${w.strong.map(t => `${esc(t.name)} (${t.p}%)`).join(", ")}. ` : ""}⭐ ${w.stars} study stars to spend.</p>
+      </div>`;
+    }).join("") + `<div class="gu-row"><button class="btn ghost" id="guWeekCopy" type="button">📋 Copy the summary</button><span class="gu-msg" id="guWeekMsg" aria-live="polite"></span></div>
+      <p class="gu-note">Time counts while a subject or game is open on screen. Copy the summary to send it in a message.</p>`;
+  }
+  const weeklyText = () => `Learn & Play, week to ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long" })}\n` + P.data().list.map(p => weeklyLine(p).text).join("\n");
+
   /* ---------------- the page ---------------- */
   Hub.page("grownups", {
     title: "Grown-ups",
@@ -142,9 +195,18 @@
           <h1>👪 Grown-ups</h1>
           <p class="tagline">How practice is going, and a way to take progress to another device.</p>
         </header>
+        <section class="gu-card" id="guWeek"></section>
         <div id="guReport"></div>
         <section class="gu-card" id="guPlayers"></section>
         <section class="gu-card" id="guNotes"></section>
+        <section class="gu-card" id="guComfort">
+          <h2>♿ Comfort</h2>
+          <p class="gu-note">For this device, every player. Less motion turns off confetti, wobbles, the rainbow flashes and screen shakes; bigger buttons make menu buttons easier to tap.</p>
+          <div class="gu-row">
+            <button class="btn ghost" type="button" data-comfort="motion" aria-pressed="false"></button>
+            <button class="btn ghost" type="button" data-comfort="big" aria-pressed="false"></button>
+          </div>
+        </section>
         <section class="gu-card" id="guBackup">
           <h2>💾 Back up or move progress</h2>
           <p class="gu-note">Progress is saved in this browser only. If the browser is cleared, or you switch to a new phone, it would be lost. Copy the progress code below (it holds every player), keep it somewhere safe, and paste it on the other device to bring everything back.</p>
@@ -183,6 +245,16 @@
         if (b.dataset.rename) { const p = meta.list.find(q => q.id === b.dataset.rename), n = prompt("New name", p.name || ""); if (n !== null && n.trim()) { P.rename(p.id, n); if (p.id === meta.active) { store.name = n.trim().slice(0, 20); Hub.saveStore(); } renderPlayers(); } }
         if (b.dataset.remove) { const p = meta.list.find(q => q.id === b.dataset.remove); if (confirm(`Remove ${p.name || "this player"} and all their progress? This can't be undone (unless you have a progress code).`)) { P.remove(p.id); renderPlayers(); } }
       });
+      $("guWeek").addEventListener("click", async e => {
+        if (!e.target.closest("#guWeekCopy")) return;
+        try { await navigator.clipboard.writeText(weeklyText()); $("guWeekMsg").textContent = "Copied!"; } catch (err) { prompt("Copy the summary", weeklyText()); }
+      });
+      function renderComfort(){
+        const c = Hub.comfort();
+        host.querySelectorAll("[data-comfort]").forEach(b => { const on = !!c[b.dataset.comfort]; b.setAttribute("aria-pressed", String(on)); b.textContent = (b.dataset.comfort === "motion" ? "🐢 Less motion: " : "🔍 Bigger buttons: ") + (on ? "ON" : "OFF"); });
+      }
+      $("guComfort").addEventListener("click", e => { const b = e.target.closest("[data-comfort]"); if (!b) return; const c = Hub.comfort(); Hub.setComfort(b.dataset.comfort, !c[b.dataset.comfort]); renderComfort(); });
+      renderComfort();
       // play-test notes from the 💬 button
       function renderNotes(){
         const notes = window.Feedback ? Feedback.all() : [];
@@ -232,7 +304,7 @@
         } catch (e) { $("guMsg2").textContent = e.message || "That didn't work."; }
       });
       return {
-        open(){ $("guReport").innerHTML = report(); renderPlayers(); renderNotes(); $("guLast").textContent = lastBackupText(); },
+        open(){ $("guWeek").innerHTML = weekly(); $("guReport").innerHTML = report(); renderPlayers(); renderNotes(); $("guLast").textContent = lastBackupText(); },
         close(){}
       };
     }

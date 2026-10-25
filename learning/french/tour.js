@@ -21,7 +21,7 @@
     const fx = Fun.pops();
     S.km = S.km || 0; S.wins = S.wins || 0;
 
-    let open = false, raf = 0, last = 0, clock = 0;
+    let clock = 0;
     let roll = 0, speed = 1, lead = 0, shownLead = 0, wobble = 0, sprint = 0, pedal = 0, rivalPedal = 0;
     let sign = null;                                // a town sign rolling in from the right
     const town = () => TOWNS[Math.floor(S.km / 10) % TOWNS.length];
@@ -113,10 +113,8 @@
       if (sprint > 0) { ctx.textAlign = "right"; ctx.fillStyle = "#ffe14d"; ctx.font = "900 20px system-ui"; ctx.fillText("⚡ SPRINT !", W - 16, 30); }
     }
 
-    function frame(now){
-      raf = 0;
-      if (!open) return;
-      const dt = Fun.dt(now, last, 0.05); last = now; clock += dt;
+    const anim = Fun.animate(dt => {
+      clock += dt;
       speed += ((sprint > 0 ? 2.6 : 1.2) - speed) * Math.min(1, dt * 2);
       roll += speed * dt;
       sprint = Math.max(0, sprint - dt); wobble = Math.max(0, wobble - dt * 1.5);
@@ -130,8 +128,7 @@
       drawRider(you, "rainbow", pedal, wobble > 0 ? Math.sin(clock * 30) * 0.12 * wobble : -0.04 * Math.min(1, sprint), Hub.store.name || "Toi");
       fx.draw(ctx, dt);
       hud();
-      raf = requestAnimationFrame(frame);
-    }
+    });
 
     return {
       answer(correct, streak){
@@ -151,8 +148,8 @@
         Hub.saveStore();
       },
       topic(){},
-      open(){ open = true; if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-      close(){ open = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+      open: anim.open,
+      close: anim.close
     };
   };
 })();

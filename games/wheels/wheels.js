@@ -510,7 +510,7 @@
       fitCanvas();
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
       if (!T) { ctx.fillStyle = "#6fc3ff"; ctx.fillRect(0, 0, W, H); return; }
-      if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+      if (shake > 0 && !Hub.lessMotion()) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
       drawBackground();
       // speed lines when you're really going
       const sp = car.on ? Math.abs(car.v) : Math.hypot(car.vx, car.vy);

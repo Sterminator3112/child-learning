@@ -95,6 +95,7 @@
       <div class="daily-head">
         <h2>📅 Today's challenges <small>${done} of ${items.length}</small></h2>
         <span class="daily-streak" title="Days in a row with a challenge done">🔥 ${s ? `${s}-day streak` : "Start a streak today!"}</span>
+        ${window.Study ? `<a class="daily-stars" href="#/shop" title="Study stars: 1 for every ${Study.PER_STAR} right answers in Learning">⭐ ${Study.balance()}${Study.boost() ? " · 📚 boost on" : ""}</a>` : ""}
         <a class="daily-coins" href="#/shop">🪙 ${store.coins} · Shop</a>
       </div>
       <ul class="daily-list">${items.map(c => `

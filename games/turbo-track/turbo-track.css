@@ -31,6 +31,7 @@
 .tt-gold{ background: radial-gradient(circle at 35% 30%, #fff1a8, #e0b232 55%, #8a6512); }
 .tt-robots{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; font-weight: 700; }
 .tt-robots .segmented button{ color: #fff; }
+.tt-robots .segmented button[aria-pressed="true"]{ color: var(--accent-ink); }
 .tt-results{ display: flex; flex-direction: column; gap: 4px; font: 600 15px "IBM Plex Mono", monospace; }
 .tt-row{ padding: 3px 12px; border-radius: 6px; background: rgba(255,255,255,0.08); text-align: left; white-space: pre; }
 .tt-row.me{ background: #ff7a00; color: #1a0d00; }

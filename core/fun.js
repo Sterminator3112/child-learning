@@ -19,6 +19,9 @@
      Fun.screen(overlay, on) shows or hides a game's full-screen overlay and stops the page scrolling behind it
      Fun.release(keys)   lets go of every key in a key table (on blur, or when a game starts)
      Fun.holdButtons(buttons, keys, attr) on-screen buttons that hold keys[button.dataset[attr]] while pressed
+     Fun.animate(step)   a scene that draws step(dt) every frame while it's open: { open(), close() }
+                         (the 3D scenes above the Learning questions), dt in seconds, at most 0.05
+     Fun.shade(hex, f)   a #rrggbb colour with every channel multiplied by f (darker below 1, lighter above)
    Sounds are on unless Hub.store.sound is false. */
 (function(){
   "use strict";
@@ -156,7 +159,7 @@
     return { el: b, refresh: show };
   }
   function shake(el){
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || Hub.lessMotion()) return;
     el.classList.remove("fun-shake"); void el.offsetWidth; el.classList.add("fun-shake");
   }
 
@@ -210,7 +213,9 @@
      keep up. In Auto, a little watcher times the frames while a game is on screen and switches to Low after a
      few slow seconds (and says so). The choice is saved in store.quality; "auto" is the default. */
   const quality = () => store.quality === "low" || (store.quality !== "high" && store.qualityAuto === "low") ? "low" : "high";
-  const res = (cssW, W, max) => Math.min(quality() === "low" ? 1 : max, Math.max(1, cssW * (window.devicePixelRatio || 1) / W));
+  // the pixel scale for a canvas: 1 on Low; at most 2 on Auto (3x screens cost 2.25 times the pixels for little
+  // difference); a game's own maximum only when High is chosen
+  const res = (cssW, W, max) => Math.min(quality() === "low" ? 1 : store.quality === "high" ? max : Math.min(2, max), Math.max(1, cssW * (window.devicePixelRatio || 1) / W));
   const QUALITY_LABEL = { auto: "Auto", high: "High", low: "Low" };
   function qualityText(){ const q = store.quality || "auto"; return `⚙️ Graphics: ${QUALITY_LABEL[q]}${q === "auto" && store.qualityAuto === "low" ? " (now low)" : ""}`; }
   function setQuality(q){
@@ -219,11 +224,18 @@
     document.querySelectorAll("[data-quality-btn]").forEach(b => { b.textContent = qualityText(); });
   }
   function cycleQuality(){ setQuality({ auto: "high", high: "low", low: "auto" }[store.quality || "auto"]); }
-  (function watch(){
+  // the game screens open right now (Fun.screen keeps this up to date), so nothing has to search the page
+  const shownScreens = new Set();
+  // the watcher only runs while a game screen is open, and starts again with the next one
+  let watching = false;
+  function watch(){
+    if (watching) return;
+    watching = true;
     let last = 0, slow = 0, acc = 0, frames = 0;
     function tick(now){
+      if (!shownScreens.size) { watching = false; return; }
       const dt = now - last; last = now;
-      if (dt > 0 && dt < 500 && document.querySelector(".game-screen:not([hidden])")) { acc += dt; frames++; }
+      if (dt > 0 && dt < 500) { acc += dt; frames++; }
       if (acc >= 1000) {
         const fps = frames * 1000 / acc;
         slow = fps < 30 ? slow + 1 : Math.max(0, slow - 1);
@@ -231,14 +243,14 @@
         if (slow >= 4 && (store.quality || "auto") === "auto" && store.qualityAuto !== "low") {
           store.qualityAuto = "low"; Hub.saveStore(); slow = 0;
           document.querySelectorAll("[data-quality-btn]").forEach(b => { b.textContent = qualityText(); });
-          const stage = document.querySelector(".game-screen:not([hidden]) .game-stage");
+          const stage = [...shownScreens][0].querySelector(".game-stage");
           if (stage) hint(stage).show("🐢 Running slowly, so graphics are lower now. You can change it on the home screen.", 5000);
         }
-      } else if (!document.querySelector(".game-screen:not([hidden])")) { acc = 0; frames = 0; }
+      }
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(t => { last = t; requestAnimationFrame(tick); });
-  })();
+  }
   // the button on the home screen
   document.addEventListener("click", e => { const b = e.target.closest("[data-quality-btn]"); if (b) cycleQuality(); });
   document.querySelectorAll("[data-quality-btn]").forEach(b => { b.textContent = qualityText(); });
@@ -251,7 +263,10 @@
     canvas.width = Math.round(W * s); canvas.height = Math.round(H * s);
     return s;
   }
-  function screen(overlay, on){ overlay.hidden = !on; document.body.style.overflow = on ? "hidden" : ""; }
+  function screen(overlay, on){
+    overlay.hidden = !on; document.body.style.overflow = on ? "hidden" : "";
+    if (on) { shownScreens.add(overlay); watch(); } else shownScreens.delete(overlay);
+  }
   function release(keys){ Object.keys(keys).forEach(k => { keys[k] = false; }); }
   function holdButtons(buttons, keys, attr){
     buttons.forEach(btn => {
@@ -261,5 +276,15 @@
     });
   }
 
-  window.Fun = { pops, sfx, face, soundButton, shake, hint, joystick, stickKeys, quality, res, setQuality, qualityText, dt, fit, screen, release, holdButtons };
+  function animate(step){
+    let raf = 0, last = 0, on = false;
+    const frame = now => { raf = 0; if (!on) return; const t = dt(now, last, 0.05); last = now; step(t); raf = requestAnimationFrame(frame); };
+    return {
+      open(){ on = true; if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
+      close(){ on = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+    };
+  }
+  function shade(hex, f){ const n = parseInt(hex.slice(1), 16), c = v => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${c(n >> 16)},${c((n >> 8) & 255)},${c(n & 255)})`; }
+
+  window.Fun = { pops, sfx, face, soundButton, shake, hint, joystick, stickKeys, quality, res, setQuality, qualityText, dt, fit, screen, release, holdButtons, animate, shade };
 })();

@@ -9,7 +9,9 @@ There's nothing to install and no build step. Just open `index.html` in a browse
 - 🤖 **New here?** Robo gives a guided tour of the home screen, then a show reel of every app (*🎬 Meet the apps* on the home screen).
 - 📅 **Every day** there are three new challenges. They earn 🪙 coins for the 🛍️ **Shop**, and playing every day keeps your 🔥 streak going.
 - 👨‍👩‍👦 **Players:** everyone in the family gets their own progress, coins and trophies.
-- 👪 **Grown-ups page:** a progress report, the players, the 💬 play-test notes from inside the games, and a backup code to move everything to another device.
+- ⭐ **Study stars:** every 10 right answers in Learning (and every typing lesson) earn a star. Stars swap for shop coins and unlock Race Off's 🧠 Brainiac car and 🌌 Galaxy paint, and 10 right answers in a day turn on a 📚 study boost (x1.5 coins in Race Off).
+- 👪 **Grown-ups page:** a weekly summary for every player (practice, accuracy against last week, learning and game time, topics to work on, ready to copy), a progress report, the players, the 💬 play-test notes from inside the games, and a backup code to move everything to another device.
+- ♿ **Comfort:** *Less motion* and *Bigger buttons* on the Grown-ups page (the system's reduced-motion setting is followed too).
 - 📱 **Phones and tablets:** *Add to Home Screen* installs it like an app, and it works offline. Every game has touch controls. *⚙️ Graphics* at the bottom of the home screen can be set to Low for older phones.
 
 ## 📚 Learning
@@ -67,7 +69,7 @@ index.html                 the launcher, and the list of every app's stylesheet 
 manifest.webmanifest, sw.js, icons/   install on a phone and play offline
 core/                      shared by everything: players and progress, trophies, screen switching (core.js),
                            the shared look (core.css), sounds and effects (fun.js), daily challenges, shop,
-                           play-test notes, the Grown-ups page, and Robo's tour (tour.js)
+                           play-test notes, study stars (study.js), the Grown-ups page, and Robo's tour (tour.js)
 learning/                  one folder per subject; notebook.js is the practice page they all share
 games/                     one folder per game; game-frame.css is the full-screen frame, blocky.js the
                            Roblox-style 3D look, race-fx.js the race WOW kit
@@ -78,7 +80,7 @@ The address bar keeps track of where you are (`#/games/pacman`), so the back but
 
 ### Tests
 
-Every pull request runs `.github/workflows/smoke.yml`: every script must parse, `tests/smoke.mjs` opens and plays every app on a desktop and a phone-sized screen, `tests/features.mjs` checks players, notes and backups, and `tests/raceoff.mjs` checks Race Off's physics.
+Every pull request runs `.github/workflows/smoke.yml`: every script must parse, `tests/smoke.mjs` opens and plays every app on a desktop and a phone-sized screen, `tests/features.mjs` checks players, notes, backups, study stars and the weekly summary, `tests/raceoff.mjs` checks Race Off's physics, and `tests/a11y.mjs` runs axe-core on every page and app and checks the keyboard and the comfort settings.
 
 ### Adding a new app
 

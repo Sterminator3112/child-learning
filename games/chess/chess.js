@@ -58,7 +58,7 @@
       <div class="ch-layout">
         <div class="ch-boardbox">
           <div class="ch-tray" id="chTrayTop"></div>
-          <div class="ch-board" id="chBoard" role="grid" aria-label="Chess board">
+          <div class="ch-board" id="chBoard" role="group" aria-label="Chess board">
             <div class="ch-squares" id="chSquares"></div>
             <div class="ch-pieces" id="chPieces"></div>
             <div class="ch-promo" id="chPromo" hidden><p>Turn your pawn into:</p><div id="chPromoBtns"></div></div>

@@ -27,13 +27,13 @@
     const fx = Fun.pops();
     S.km = S.km || 0; S.planets = S.planets || 0; S.rights = S.rights || 0;
 
-    let open = false, raf = 0, last = 0, clock = 0;
+    let clock = 0;
     let speed = 1, boost = 0, wobble = 0, rock = null, planet = null, hue = 0;
     // 160 stars at random spots in a big box, flying towards you
     const stars = Array.from({ length: 160 }, () => newStar(true));
     function newStar(any){ return { x: (Math.random() - 0.5) * 24, y: (Math.random() - 0.5) * 12, z: any ? Math.random() * 30 + 0.5 : 30, c: Math.random() }; }
     function proj(x, y, z){ return { x: CX + x * FOC / z, y: CY + y * FOC / z, s: FOC / z }; }
-    function shade(hex, f){ const n = parseInt(hex.slice(1), 16), c = v => Math.max(0, Math.min(255, Math.round(v * f))); return `rgb(${c(n >> 16)},${c((n >> 8) & 255)},${c(n & 255)})`; }
+    const shade = Fun.shade;
 
     function drawPlanet(P, z, sx, sy){
       const p = proj(sx, sy, z), R = P.r * p.s;
@@ -83,10 +83,8 @@
       Fun.face(ctx, x, y - 10, 8, wobble > 0 ? "dizzy" : boost > 0.4 ? "grin" : "happy", clock, 0, -0.3);
     }
 
-    function frame(now){
-      raf = 0;
-      if (!open) return;
-      const dt = Fun.dt(now, last, 0.05); last = now; clock += dt;
+    const anim = Fun.animate(dt => {
+      clock += dt;
       boost = Math.max(0, boost - dt * 0.5); wobble = Math.max(0, wobble - dt * 1.2);
       speed += ((1 + boost * 5) - speed) * Math.min(1, dt * 3);
       const bg = ctx.createRadialGradient(CX, CY, 10, CX, CY, W * 0.6);
@@ -131,8 +129,7 @@
       ctx.fillText(`🚀 ${S.km.toLocaleString("en")} km · next: ${next} (${5 - (S.rights % 5)})`, 20, 25);
       ctx.textBaseline = "alphabetic";
       fx.draw(ctx, dt);
-      raf = requestAnimationFrame(frame);
-    }
+    });
 
     return {
       answer(correct, streak){
@@ -152,8 +149,8 @@
         Hub.saveStore();
       },
       topic(){},
-      open(){ open = true; if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } },
-      close(){ open = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+      open: anim.open,
+      close: anim.close
     };
   };
 })();

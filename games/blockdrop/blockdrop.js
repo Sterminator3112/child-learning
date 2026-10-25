@@ -110,7 +110,7 @@
     let isOpen = false, running = false, paused = false, last = 0, clock = 0;
     let mode = "marathon", grid = [], piece = null, bag = [], next = [], hold = null, held = false;
     let score = 0, rows = 0, level = 1, fallT = 0, lockT = 0, lockMoves = 0, soft = false, clearing = null, over = 0;
-    let combo = -1, b2b = false, lastTurn = false, timeT = 0, bump = 0, glow = 0, debris = [], banner = null;
+    let combo = -1, b2b = false, lastTurn = false, timeT = 0, bump = 0, glow = 0, debris = [];
 
     /* ----- the 3D camera: the well is 10 × 20 cubes, one cube deep, seen from slightly above the middle ----- */
     const F = 420, D = 14, CAMX = 5, CAMY = 13, CX = W / 2, CY = 236;

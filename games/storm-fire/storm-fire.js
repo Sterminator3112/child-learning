@@ -73,7 +73,7 @@
             </div>
           </div>
         </div>
-        <div class="sf-shop" id="sfShop"></div>
+        <div class="sf-shop" id="sfShop" tabindex="0" role="region" aria-label="Upgrades shop"></div>
         <div class="game-help">Click the twigs 🌿 (or press Space) to feed the fire · buy fuel and upgrades with ✨ embers · face the storm when your fire is big enough!</div>
       </div>
     </section>`;
