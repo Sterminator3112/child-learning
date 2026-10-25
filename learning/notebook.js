@@ -60,6 +60,7 @@
     return {
       prompt: o.prompt, promptHtml: o.promptHtml, hint: o.hint || "", say: o.say, sayAfter: o.sayAfter, keys: o.keys,
       check: v => ok.includes(norm(v)),
+      accepts: ok,
       explain: () => o.explain,
       answerDisplay: o.answerDisplay || o.answers[0]
     };
@@ -141,6 +142,7 @@
     if (!d.racesWon) d.racesWon = 0;
     if (!d.robo) d.robo = "easy";
     if (!d.challengeCorrect) d.challengeCorrect = 0;
+    if (!Array.isArray(d.missed)) d.missed = [];
 
     const badges = makeBadges(cfg, d);
     Hub.register({
@@ -223,6 +225,7 @@
         </div>
         <div class="card-foot">
           <button class="btn ghost small" data-ref="nextBtn" type="button" disabled>Next question →</button>
+          <button class="btn ghost small" data-ref="reviewBtn" type="button" hidden></button>
           <span class="level-desc" data-ref="hintText"></span>
         </div>
       </section>
@@ -273,6 +276,7 @@
     let currentMode = currentModeFor(topicNow());
     let sessionAttempted = 0, sessionCorrect = 0;
     let currentProblem = null, answered = false;
+    let reviewItem = null;   // the missed question being reviewed, or null in normal practice
     let isOpen = false;
     const scene = cfg.scene ? cfg.scene($.scene) : null;
     if (scene) $.scene.hidden = false;
@@ -372,6 +376,50 @@
       if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
     });
 
+
+    /* ---------------- mistake review: missed questions come back after 1, 3 and 7 days ---------------- */
+    const DAY = 864e5, REVIEW_GAPS = [1, 3, 7], MAX_MISSED = 40;
+    const dueItems = () => d.missed.filter(m => m.due <= Date.now());
+    function missedKey(prob, topicId){ return topicId + "|" + (prob.prompt || prob.promptHtml); }
+    function remember(prob, topicId){
+      const key = missedKey(prob, topicId);
+      const old = d.missed.find(m => m.key === key);
+      if (old) { old.step = 0; old.due = Date.now() + DAY; return; }
+      d.missed.push({
+        key, topic: topicId, step: 0, due: Date.now() + DAY,
+        prompt: prob.prompt, promptHtml: prob.promptHtml, hint: prob.hint || "",
+        choices: prob.choices, keys: prob.keys, accepts: prob.accepts,
+        answerDisplay: prob.answerDisplay, explainHtml: prob.explain(),
+        say: typeof prob.say === "object" ? prob.say : undefined
+      });
+      if (d.missed.length > MAX_MISSED) d.missed.shift();
+    }
+    // a saved question can't keep its check function, so rebuild one from what was saved
+    function rebuild(m){
+      const num = x => { const n = parseFloat(String(x).replace(",", ".")); return isNaN(n) ? null : n; };
+      const same = (a, b) => num(a) !== null && num(b) !== null ? Math.abs(num(a) - num(b)) < 1e-9 : norm(a) === norm(b);
+      return {
+        prompt: m.prompt, promptHtml: m.promptHtml, hint: m.hint, choices: m.choices, keys: m.keys, say: m.say,
+        check: m.choices ? v => v === m.answerDisplay : v => m.accepts ? m.accepts.includes(norm(v)) : same(v, m.answerDisplay),
+        explain: () => m.explainHtml, answerDisplay: m.answerDisplay
+      };
+    }
+    function reviewed(correct){
+      const m = reviewItem;
+      if (correct && m.step + 1 >= REVIEW_GAPS.length) d.missed.splice(d.missed.indexOf(m), 1);
+      else if (correct) { m.step++; m.due = Date.now() + REVIEW_GAPS[m.step] * DAY; }
+      else { m.step = 0; m.due = Date.now() + DAY; }
+    }
+    function renderReviewBtn(){
+      const n = dueItems().length;
+      $.reviewBtn.hidden = !n && !reviewItem;
+      $.reviewBtn.textContent = reviewItem ? "✕ Stop review" : `🔁 Review mistakes (${n})`;
+    }
+    $.reviewBtn.addEventListener("click", () => {
+      reviewItem = reviewItem ? null : dueItems()[0] || null;
+      newProblem();
+    });
+
     /* ---------------- render: topic nav (number line) ---------------- */
     function ringSvg(pct){
       const r = 8, circ = 2 * Math.PI * r;
@@ -454,10 +502,15 @@
     }
 
     function newProblem(){
+      if (reviewItem) {
+        reviewItem = dueItems().find(m => m.topic === currentTopicId) || dueItems()[0] || null;
+        if (reviewItem && reviewItem.topic !== currentTopicId) { currentTopicId = reviewItem.topic; d.topic = currentTopicId; renderTopicNav(); }
+      }
       const topic = topicNow();
       $.topicTitle.textContent = topic.title;
       $.levelDesc.textContent = topic.levelDesc[currentLevel];
-      currentProblem = topic.generate(currentLevel, currentMode);
+      currentProblem = reviewItem ? rebuild(reviewItem) : topic.generate(currentLevel, currentMode);
+      renderReviewBtn();
       if (scene) scene.topic(topic.id);
       answered = false;
       paint(practice, currentProblem, topic);
@@ -476,6 +529,8 @@
       const ts = d.topics[currentTopicId];
       ts.attempted++;
       daily(d, correct);
+      if (reviewItem) reviewed(correct);
+      else if (!correct) remember(currentProblem, currentTopicId);
       if (correct) {
         sessionCorrect++; ts.correct++;
         d.streak++; if (d.streak > d.best) d.best = d.streak;
@@ -497,6 +552,8 @@
       Hub.saveStore();
       renderLedger();
       renderTopicNav();
+      renderReviewBtn();
+      if (reviewItem) $.verdict.textContent += correct ? " It will come back later." : " Let's try it again tomorrow.";
       $.nextBtn.disabled = false;
       $.nextBtn.focus();
     }
@@ -511,7 +568,7 @@
       if (!confirm(`Clear all saved ${cfg.subject} progress on this device? This also takes your ${cfg.subject} trophies off the shelf. Other scores stay.`)) return;
       TOPICS.forEach(t => { d.topics[t.id] = { attempted: 0, correct: 0 }; });
       d.streak = 0; d.best = 0;
-      d.race = { you: 0, rival: 0 }; d.racesWon = 0; d.challengeCorrect = 0; d.trialBest = {};
+      d.race = { you: 0, rival: 0 }; d.racesWon = 0; d.challengeCorrect = 0; d.trialBest = {}; d.missed = []; reviewItem = null;
       BADGES.forEach(b => { delete store.badges[b.id]; });
       sessionAttempted = 0; sessionCorrect = 0;
       Hub.saveStore();

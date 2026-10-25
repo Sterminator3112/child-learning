@@ -82,7 +82,27 @@ await page.goto(BASE + "#/grownups"); await page.waitForTimeout(300);
 const week = await page.locator("#guWeek").innerText();
 check(week.includes("Leo") && week.includes("Mia") && week.includes("15 min") && week.includes("30 min"), "the weekly summary lists every player with learning and game time");
 
+// mistake review: a wrong answer is kept, comes back when due, and leaves the deck after three right answers
+await page.goto(BASE + "#/learning/math"); await page.waitForTimeout(400);
+const mathData = () => page.evaluate(() => Notebook.subjects.find(s => s.id === "math").data.missed.length);
+const makeDue = () => page.evaluate(() => { Notebook.subjects.find(s => s.id === "math").data.missed.forEach(m => { m.due = Date.now() - 1000; }); });
+await page.fill("#app-math [data-ref=p-input]", "-999");
+await page.click("#app-math [data-ref=p-check]");
+check(await mathData() === 1, "a wrong answer is saved for review");
+await makeDue();
+await page.click("#app-math [data-ref=nextBtn]");
+check((await page.locator("#app-math [data-ref=reviewBtn]").innerText()).includes("(1)"), "the review button shows how many mistakes are due");
+await page.click("#app-math [data-ref=reviewBtn]");
+for (let i = 0; i < 3; i++) {
+  const ans = await page.evaluate(() => Notebook.subjects.find(s => s.id === "math").data.missed[0].answerDisplay);
+  await page.fill("#app-math [data-ref=p-input]", ans);
+  await page.click("#app-math [data-ref=p-check]");
+  if (i < 2) { await makeDue(); await page.click("#app-math [data-ref=nextBtn]"); }
+}
+check(await mathData() === 0, "three right review answers clear a mistake");
+
 // the backup code carries both players to a fresh browser
+await page.goto(BASE + "#/grownups"); await page.waitForTimeout(300);
 await page.click("#guMake");
 await page.waitForFunction(() => document.getElementById("guCode").value.length > 10);
 const code = await page.inputValue("#guCode");
