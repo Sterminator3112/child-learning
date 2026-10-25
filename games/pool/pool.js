@@ -30,7 +30,7 @@
   const PAINT = ["", "#ffd400", "#1f6bff", "#ff3b30", "#8b3dff", "#ff8a00", "#19c24a", "#b5301f"];
   const colourOf = n => n === 0 ? "#ffffff" : n === 8 ? "#16161d" : PAINT[n > 8 ? n - 8 : n];
   const groupOf = n => n === 0 ? null : n === 8 ? "eight" : n < 8 ? "solid" : "stripe";
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const { clamp } = Hub.util;
   const NAMES = ["Noob_Max", "BloxBot"];
   const MODES = { easy: { label: "Easy", err: 0.07 }, normal: { label: "Normal", err: 0.022 }, hard: { label: "Hard", err: 0.007 }, practice: { label: "Practice" } };
   const SPIN_FOLLOW = 0.6, SPIN_SIDE = 0.32;         // how much top/back spin and side spin change the cue ball's path

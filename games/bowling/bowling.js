@@ -26,7 +26,7 @@
   for (let row = 0; row < 4; row++) for (let i = 0; i <= row; i++) PIN_SPOTS.push([(i - row / 2) * 0.3048, HEADPIN + row * 0.2639]);
   const M_BALL = 7, M_PIN = 1.5;
   const NAMES = ["You", "BloxBot"];
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const { clamp } = Hub.util;
 
   // the screen
   const W = 960, H = 540, CX = 480, HY = 150, F = 700;

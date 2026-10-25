@@ -21,7 +21,7 @@
   const HALF_W = 16, END = 25, GOAL_W = 3.6, GOAL_H = 2.6, NET = 2.2, BOX_W = 9, BOX_D = 7;
   const MATCH_TIME = 180;
   const RUN = 8.4, BOT_RUN = 7.1, KEEPER_RUN = 5.6, BALL_R = 0.35, GRAVITY = 20;
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const { clamp } = Hub.util;
   const BLUE = { shirt: "#2f7bff", pants: "#f4f6fb" }, RED = { shirt: "#e8332b", pants: "#1b1f2a" };
 
   function mount(host){

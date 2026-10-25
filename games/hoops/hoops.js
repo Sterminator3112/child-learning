@@ -23,7 +23,7 @@
   const HALF_W = 9, END = 15, HOOP_Z = 13.4, HOOP_Y = 4.2, RIM_R = 0.55, BALL_R = 0.28, THREE = 7;
   const KEY_W = 1.8, KEY_D = 5.8, GAME_TIME = 180;
   const RUN = 8, BOT_RUN = 6.8, GRAVITY = 28, JUMP = 9, BALL_G = 18;
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const { clamp } = Hub.util;
   const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
   const BLUE = { shirt: "#2f7bff", pants: "#2f7bff" }, RED = { shirt: "#e8332b", pants: "#e8332b" };
   const OFFENCE = [{ x: 0, u: 10.5 }, { x: -5.5, u: 8 }, { x: 5.5, u: 8 }];   // where each slot stands to attack
