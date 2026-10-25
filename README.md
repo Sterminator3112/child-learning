@@ -80,7 +80,7 @@ The address bar keeps track of where you are (`#/games/pacman`), so the back but
 
 ### Tests
 
-Every pull request runs `.github/workflows/smoke.yml`: every script must parse, `tests/smoke.mjs` opens and plays every app on a desktop and a phone-sized screen, `tests/features.mjs` checks players, notes, backups, study stars and the weekly summary, `tests/raceoff.mjs` checks Race Off's physics, and `tests/a11y.mjs` runs axe-core on every page and app and checks the keyboard and the comfort settings.
+Every pull request runs `.github/workflows/smoke.yml`: every script must parse, `tests/smoke.mjs` opens and plays every app on a desktop and a phone-sized screen (two jobs side by side), `tests/features.mjs` checks players, notes, backups, study stars and the weekly summary, `tests/raceoff.mjs` checks Race Off's physics, and `tests/a11y.mjs` runs axe-core on every page and app and checks the keyboard and the comfort settings.
 
 ### Adding a new app
 

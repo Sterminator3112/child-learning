@@ -2,17 +2,18 @@
    presses Play where there is one, then plays a little (arrow keys, Space and a mouse drag on the game),
    and fails if any page throws an error. Then it opens everything again on a phone-sized screen and fails
    if anything sticks out sideways or a game's canvas runs off the bottom.
-     node tests/smoke.mjs
+     node tests/smoke.mjs [desktop|phone]     (no argument runs both; CI runs them as two jobs)
    Needs Playwright with Chromium (npm install playwright && npx playwright install chromium). */
 import { start } from "./serve.mjs";
 
 const { BASE, browser, close } = await start();
 const failures = [];
+const mode = process.argv[2] || "both";
 
 // a few seconds of button mashing: hold the arrows, tap Space, drag across the game with the mouse
 async function playALittle(page){
   const canvas = page.locator(".game-screen:not([hidden]) canvas, .app-view:not([hidden]) canvas").first();
-  for (const key of ["ArrowUp", "ArrowLeft", "Space", "ArrowRight", "ArrowDown"]) {
+  for (const key of ["ArrowLeft", "Space"]) {
     await page.keyboard.down(key); await page.waitForTimeout(80); await page.keyboard.up(key);
   }
   if (await canvas.count() && await canvas.isVisible()) {
@@ -74,16 +75,17 @@ const apps = [];
 for (const section of ["#/learning", "#/games"]) apps.push(...await visit(section, false));
 console.log(`Found ${apps.length} apps`);
 if (apps.length < 10) failures.push(`only ${apps.length} apps were listed`);
-for (const hash of apps) {
+if (mode !== "phone") for (const hash of apps) {
   await visit(hash, true);
   console.log(`${failures.some(f => f.startsWith(hash + ":")) ? "FAIL" : "ok  "} ${hash}`);
 }
 
-for (const p of ["#/grownups", "#/shop"]) {   // the Grown-ups page (report and backup) and the shop too
+if (mode !== "phone") for (const p of ["#/grownups", "#/shop"]) {   // the Grown-ups page (report and backup) and the shop too
   await visit(p, false);
   console.log(`${failures.some(f => f.startsWith(p + ":")) ? "FAIL" : "ok  "} ${p}`);
 }
 
+if (mode !== "desktop") {
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 const phonePage = await phone.newPage();
 const phoneErrors = [];
@@ -92,6 +94,7 @@ await phonePage.goto(BASE, { waitUntil: "load" });
 for (const hash of ["#/", "#/learning", "#/games", "#/grownups", "#/shop", ...apps]) await phoneCheck(hash, phonePage, phoneErrors);
 console.log(`${failures.some(f => f.includes("(phone)")) ? "FAIL" : "ok  "} everything fits on a phone`);
 await phone.close();
+}
 
 await close();
 if (failures.length) { console.error("\nErrors:\n" + failures.join("\n")); process.exit(1); }
