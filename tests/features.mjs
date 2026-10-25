@@ -30,6 +30,18 @@ await Promise.all([page.waitForEvent("load"), page.click(".profile-chip:not(.on)
 await page.waitForTimeout(300);
 check(await page.evaluate(() => Hub.store.coins) === 123 && await page.evaluate(() => Hub.Profiles.active().name) === "Leo", "switching back brings the first player's progress back");
 
+// Robo is always on the home screen: before the tour, after it, and again after ✕ on the next visit
+const robo = () => page.evaluate(() => { const b = document.querySelector(".tour-banner"); return b && !b.hidden ? b.textContent : ""; });
+await page.goto(BASE); await page.waitForTimeout(300);
+await page.evaluate(() => localStorage.removeItem("lp-tour-seen")); await page.reload(); await page.waitForTimeout(300);
+check((await robo()).includes("New here"), "Robo welcomes a first-time visitor on the home screen");
+await page.evaluate(() => localStorage.setItem("lp-tour-seen", "1")); await page.reload(); await page.waitForTimeout(300);
+check((await robo()).includes("Meet the apps"), "Robo stays on the home screen after the tour was seen");
+await page.click(".tour-banner-x");
+check(!(await robo()), "✕ hides Robo for now");
+await page.reload(); await page.waitForTimeout(300);
+check(!!(await robo()), "Robo is back on the next visit");
+
 // a play-test note from inside a game
 await page.goto(BASE + "#/games/raceoff"); await page.waitForTimeout(400);
 check(await page.locator("#roOverlay .fb-btn").count() === 1, "the 💬 button is in the game's top bar");
