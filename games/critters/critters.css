@@ -1,4 +1,4 @@
-/* Critter Quest: the tile map with its walking buttons, the team strip, and the battle screen. */
+/* Critter Quest: the tile map with its walking buttons, the team strip, the team screen, and the battle screen. */
 .cr-box{ width: min(100%, 720px); }
 .cr-stage{ min-height: min(72vh, 560px); }
 .cr-world{ display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -22,7 +22,12 @@
 .cr-pad [data-d="-1,0"]{ grid-area: l; }
 .cr-pad [data-d="0,1"]{ grid-area: d; }
 .cr-pad [data-d="1,0"]{ grid-area: r; }
-.cr-team{ display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.cr-team{
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  background: none; border: 0; padding: 4px; border-radius: 12px; cursor: pointer; font: inherit;
+}
+.cr-team:hover .cr-mini.open, .cr-team:focus-visible .cr-mini.open{ background: #ffd84d; color: #1a1030; }
+.cr-team:focus-visible{ outline: 3px solid #ffd84d; outline-offset: 2px; }
 .cr-mini{
   display: flex; flex-direction: column; align-items: center; gap: 2px; width: 58px; padding: 4px;
   background: rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 11px;
@@ -61,6 +66,33 @@
 .cr-acts .btn{ font-size: 14px; }
 .cr-acts .btn.ghost{ background: rgba(255,255,255,0.85); color: #1a1030; border-color: #1a1030; }
 .cr-panel{ background: rgba(10,30,20,0.88); }
+
+.cr-teamview{
+  min-height: min(72vh, 560px); max-height: calc(100vh - 140px); overflow-y: auto;
+  padding: 12px 14px; border-radius: 12px; background: #13261a; color: #fff;
+}
+.cr-tv-head{ display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.cr-tv-head h3{ font: 800 20px "Bricolage Grotesque", sans-serif; }
+.cr-teamview h4{ margin: 14px 0 6px; font-size: 15px; }
+.cr-shop{
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 12px;
+  background: rgba(178,107,255,0.18); border: 2px solid rgba(178,107,255,0.5); border-radius: 10px; font-size: 14px;
+}
+.cr-shop small{ flex-basis: 100%; opacity: 0.8; }
+.cr-row{
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; margin-bottom: 6px;
+  background: rgba(255,255,255,0.08); border-radius: 10px;
+}
+.cr-row.out .cr-ri{ filter: grayscale(1); opacity: 0.5; }
+.cr-ri{ font-size: 36px; line-height: 1; }
+.cr-rd{ flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.cr-rd small{ opacity: 0.8; }
+.cr-rd .cr-bar{ max-width: 220px; }
+.cr-mv{ font-style: italic; }
+.cr-rb{ display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
+.cr-rb .btn.ghost{ color: #fff; border-color: rgba(255,255,255,0.4); }
+.cr-lead{ font-size: 12px; font-weight: 700; color: #ffd84d; text-align: center; padding: 4px; }
+.cr-empty{ font-size: 13px; opacity: 0.7; }
 .cr-starters{ display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
 .cr-starter{ display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 96px; }
 .cr-starter span{ font-size: 40px; line-height: 1.1; }
@@ -72,4 +104,7 @@
   .cr-say{ font-size: 13px; }
   .cr-starter{ min-width: 76px; }
   .cr-starter span{ font-size: 30px; }
+  .cr-row{ flex-wrap: wrap; }
+  .cr-rb{ flex-direction: row; width: 100%; justify-content: flex-end; }
+  .cr-acts .btn{ font-size: 12px; padding: 6px 9px; }
 }
