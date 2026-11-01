@@ -6,9 +6,21 @@ on:
   pull_request:
 
 jobs:
+  # three jobs run side by side, so the whole run takes as long as the slowest one
   smoke:
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Open every app and game (desktop)
+            run: node tests/smoke.mjs desktop
+          - name: Open every app and game (phone)
+            run: node tests/smoke.mjs phone
+          - name: Players, Race Off physics and accessibility
+            run: node tests/features.mjs && node tests/raceoff.mjs && node tests/a11y.mjs
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,11 +32,5 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright@1.47.2 axe-core@4.10.2
           npx playwright install --with-deps chromium
-      - name: Open every app and game
-        run: node tests/smoke.mjs
-      - name: Players, play-test notes and backup
-        run: node tests/features.mjs
-      - name: Race Off physics (the car mustn't sink into the ground or get stuck)
-        run: node tests/raceoff.mjs
-      - name: Accessibility (axe-core on every page, keyboard, comfort settings)
-        run: node tests/a11y.mjs
+      - name: ${{ matrix.name }}
+        run: ${{ matrix.run }}
