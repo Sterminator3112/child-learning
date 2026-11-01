@@ -359,5 +359,7 @@
   // what the Grown-ups page needs to know about the apps and the trophies
   const appList = () => apps.map(a => ({ id: a.id, section: a.section, title: a.title, icon: a.icon, blurb: a.blurb, stat: a.stat ? a.stat() : "", badges: a.badges.length, earned: a.badges.filter(b => store.badges[b.id]).length }));
   const toast = (icon, line1, line2) => showToast({ icon, name: line2 }, line1);
-  window.Hub = { store, saveStore, formatTime, confettiBurst, checkBadges, register, leave, page, appList, toast, STORE_KEY, Profiles, CATEGORIES, comfort, setComfort, lessMotion: () => reduceMotion.matches };
+  // tiny helpers the games share
+  const util = { clamp: (v, a, b) => Math.max(a, Math.min(b, v)) };
+  window.Hub = { util, store, saveStore, formatTime, confettiBurst, checkBadges, register, leave, page, appList, toast, STORE_KEY, Profiles, CATEGORIES, comfort, setComfort, lessMotion: () => reduceMotion.matches };
 })();
