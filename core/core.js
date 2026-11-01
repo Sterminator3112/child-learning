@@ -126,7 +126,7 @@
   const CATEGORIES = [
     { title: "🏁 Racing", ids: ["raceoff", "wheels", "turbo"] },
     { title: "⚽ Sports", ids: ["soccer", "hoops", "pool", "bowling", "ping-pong"] },
-    { title: "🗺️ Adventure", ids: ["forest", "parkour", "robot-tag", "tag-rush", "zombie-blaster", "egg-heist"] },
+    { title: "🗺️ Adventure", ids: ["forest", "parkour", "robot-tag", "tag-rush", "zombie-blaster", "egg-heist", "critters"] },
     { title: "👾 Arcade", ids: ["pacman", "pacman-3d", "snake", "lander", "blockdrop", "bricks", "frog", "tower", "fishing"] },
     { title: "🧱 Build & grow", ids: ["blocks", "garden", "storm-fire"] },
     { title: "🧠 Brain games", ids: ["chess", "memory"] }

@@ -1,0 +1,75 @@
+/* Critter Quest: the tile map with its walking buttons, the team strip, and the battle screen. */
+.cr-box{ width: min(100%, 720px); }
+.cr-stage{ min-height: min(72vh, 560px); }
+.cr-world{ display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.cr-map{
+  display: grid; grid-template-columns: repeat(var(--cols, 12), 1fr); gap: 0;
+  width: min(100%, calc((100vh - 290px) * 12 / 9)); min-width: 0;
+  border-radius: 12px; overflow: hidden; border: 3px solid #2e6b30;
+}
+.cr-t{ aspect-ratio: 1; display: grid; place-items: center; font-size: clamp(14px, 4vw, 30px); line-height: 1; }
+.cr-t.t-tree{ background: #2f7d32; }
+.cr-t.t-water{ background: #3b8fd9; }
+.cr-t.t-path{ background: #e9d8a6; }
+.cr-t.t-grass{ background: #6cc04a; }
+.cr-t.t-center, .cr-t.t-gym{ background: #f4e3b5; }
+.cr-t.me{ animation: cr-bob 0.6s ease-in-out infinite alternate; }
+@keyframes cr-bob{ to{ transform: translateY(-3px); } }
+.cr-note{ min-height: 1.4em; color: #fff; font-size: 14px; text-align: center; }
+.cr-pad{ display: grid; grid-template-columns: repeat(3, auto); grid-template-areas: ". u ." "l d r"; gap: 4px; }
+.cr-pad .btn{ color: #fff; border-color: rgba(255,255,255,0.4); padding: 6px 14px; font-size: 18px; touch-action: manipulation; }
+.cr-pad [data-d="0,-1"]{ grid-area: u; }
+.cr-pad [data-d="-1,0"]{ grid-area: l; }
+.cr-pad [data-d="0,1"]{ grid-area: d; }
+.cr-pad [data-d="1,0"]{ grid-area: r; }
+.cr-team{ display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.cr-mini{
+  display: flex; flex-direction: column; align-items: center; gap: 2px; width: 58px; padding: 4px;
+  background: rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 11px;
+}
+.cr-mini span{ font-size: 24px; line-height: 1; }
+.cr-mini.out{ opacity: 0.4; filter: grayscale(1); }
+.cr-bar{ width: 100%; height: 7px; background: rgba(0,0,0,0.35); border-radius: 4px; overflow: hidden; }
+.cr-bar i{ display: block; height: 100%; background: #4dd96b; transition: width 0.4s; }
+.cr-bar.mid i{ background: #ffd84d; }
+.cr-bar.low i{ background: #ff5c5c; }
+
+.cr-battle{
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-areas: ". foe" "me ." "say say" "acts acts";
+  gap: 10px; padding: 14px; border-radius: 12px; min-height: min(72vh, 560px);
+  background: linear-gradient(#9fd8ff 0 45%, #7dcc5a 45%);
+}
+.cr-card{ display: flex; align-items: center; gap: 10px; }
+.cr-foe{ grid-area: foe; flex-direction: row-reverse; }
+.cr-me{ grid-area: me; }
+.cr-emo{ font-size: clamp(54px, 13vw, 96px); line-height: 1; filter: drop-shadow(0 6px 0 rgba(0,0,0,0.2)); }
+.cr-me .cr-emo{ transform: scaleX(-1); }
+.cr-card.hit .cr-emo{ animation: cr-hit 0.35s; }
+@keyframes cr-hit{ 25%{ translate: -8px 0; opacity: 0.4; } 75%{ translate: 8px 0; opacity: 0.4; } }
+.cr-info{
+  display: flex; flex-direction: column; gap: 3px; min-width: 120px; padding: 8px 10px;
+  background: rgba(255,255,255,0.92); color: #1a1030; border-radius: 10px; font-size: 13px;
+}
+.cr-info b{ font-size: 15px; }
+.cr-info small{ opacity: 0.75; }
+.cr-info em{ font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 12px; text-align: right; }
+.cr-say{
+  grid-area: say; min-height: 3em; padding: 10px 14px; border-radius: 10px;
+  background: #1a1030; color: #fff; font-size: 16px; border: 3px solid #ffd84d;
+}
+.cr-acts{ grid-area: acts; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: flex-start; align-content: flex-start; }
+.cr-acts .btn{ font-size: 14px; }
+.cr-acts .btn.ghost{ background: rgba(255,255,255,0.85); color: #1a1030; border-color: #1a1030; }
+.cr-panel{ background: rgba(10,30,20,0.88); }
+.cr-starters{ display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.cr-starter{ display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 96px; }
+.cr-starter span{ font-size: 40px; line-height: 1.1; }
+.cr-starter small{ font-size: 11px; opacity: 0.85; }
+@media (pointer: fine){ .cr-pad{ display: none; } }
+@media (max-width: 640px), (max-height: 500px){
+  .cr-battle{ padding: 8px; gap: 6px; }
+  .cr-info{ min-width: 0; font-size: 11px; padding: 5px 7px; }
+  .cr-say{ font-size: 13px; }
+  .cr-starter{ min-width: 76px; }
+  .cr-starter span{ font-size: 30px; }
+}
