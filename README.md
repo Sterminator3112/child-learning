@@ -83,6 +83,15 @@ The address bar keeps track of where you are (`#/games/pacman`), so the back but
 
 Every pull request runs `.github/workflows/smoke.yml`: every script must parse, `tests/smoke.mjs` opens and plays every app on a desktop and a phone-sized screen (two jobs side by side), `tests/features.mjs` checks players, notes, backups, study stars and the weekly summary, `tests/raceoff.mjs` checks Race Off's physics, and `tests/a11y.mjs` runs axe-core on every page and app and checks the keyboard and the comfort settings.
 
+A separate job runs [ESLint](https://eslint.org) (`eslint.config.mjs`) to catch typos in names, unused code and other likely bugs. To run it locally:
+
+```bash
+npm install --no-save --no-package-lock eslint@9.39.1 @eslint/js@9.39.1 globals@16.5.0
+npx eslint .
+```
+
+If a new script shares an object with the others through `window` (like `window.Hub`), add its name to the `shared` list in `eslint.config.mjs`.
+
 ### Adding a new app
 
 1. Make a folder, like `games/snake/`, with a `.js` file (and a `.css` file if it needs one).

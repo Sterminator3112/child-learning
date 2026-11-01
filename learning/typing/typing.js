@@ -26,7 +26,7 @@
     "rechter Zeigefinger", "rechter Mittelfinger", "rechter Ringfinger", "rechter kleiner Finger", "Daumen"];
   // welche Taste (und ob mit Shift) ein Zeichen braucht
   const CHAR = {};
-  ROWS.flat().forEach(([k, s, f, , id]) => {
+  ROWS.flat().forEach(([k, s, f]) => {
     if (k && k.length === 1) CHAR[k] = { key: k, shift: false, finger: f };
     if (s && s.length === 1) CHAR[s] = { key: k, shift: true, finger: f };
   });
@@ -147,7 +147,7 @@
       return out.join(" ");
     }
     // Buchstaben-Übung: zuerst die neuen Tasten, dann Wörter und Silben
-    const set = L.keys, neu = L.neu || set.slice(-4).replace(/[,.\-]/g, "") || set;
+    const set = L.keys, neu = L.neu || set.slice(-4).replace(/[,.-]/g, "") || set;
     const words = WOERTER.filter(w => w.length > 1 && fits(w, set));
     const withNew = words.filter(w => [...neu].some(ch => w.includes(ch)));
     const letters = [...set].filter(ch => /[a-zäöü]/.test(ch));

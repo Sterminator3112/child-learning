@@ -22,7 +22,7 @@
     if (!voiceOn || store.sound === false || !("speechSynthesis" in window)) return;
     try {
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, ""));
+      const u = new SpeechSynthesisUtterance(text.replace(/(?:[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]|\u{FE0F}|\u{200D})/gu, ""));
       u.lang = "en-GB"; u.rate = 1.02; u.pitch = 1.25;
       const v = speechSynthesis.getVoices().find(x => x.lang.startsWith("en"));
       if (v) u.voice = v;
