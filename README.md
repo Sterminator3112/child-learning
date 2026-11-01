@@ -43,6 +43,7 @@ Every subject has three levels (Warm-up, Practice, Challenge), a worked answer f
 - 🏃 **Robot Tag** and 🏁 **Tag Rush**: run away from the taggers.
 - 🧟 **Zombie Blaster**: blast silly zombies in a moonlit graveyard.
 - 🥚 **Egg Heist**: like Steal An Egg on Roblox. Buy eggs, earn cash and steal the best ones.
+- 🐾 **Critter Quest**: like Pokémon. Catch critters in the tall grass, level them up until they evolve, and beat the Gym Captain for the ⚡ Spark Badge.
 
 **👾 Arcade**
 - 👻 **Pac-Man** and 🟡 **Pac-Man 3D** (from inside the maze).
