@@ -72,7 +72,7 @@ async function visit(hash, play){
 }
 
 const apps = [];
-for (const section of ["#/learning", "#/games"]) apps.push(...await visit(section, false));
+for (const section of ["#/learning", "#/games", "#/build"]) apps.push(...await visit(section, false));
 console.log(`Found ${apps.length} apps`);
 if (apps.length < 10) failures.push(`only ${apps.length} apps were listed`);
 if (mode !== "phone") for (const hash of apps) {
@@ -91,7 +91,7 @@ const phonePage = await phone.newPage();
 const phoneErrors = [];
 phonePage.on("pageerror", e => phoneErrors.push(e.message));
 await phonePage.goto(BASE, { waitUntil: "load" });
-for (const hash of ["#/", "#/learning", "#/games", "#/grownups", "#/shop", ...apps]) await phoneCheck(hash, phonePage, phoneErrors);
+for (const hash of ["#/", "#/learning", "#/games", "#/build", "#/grownups", "#/shop", ...apps]) await phoneCheck(hash, phonePage, phoneErrors);
 console.log(`${failures.some(f => f.includes("(phone)")) ? "FAIL" : "ok  "} everything fits on a phone`);
 await phone.close();
 }

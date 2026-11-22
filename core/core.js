@@ -2,7 +2,7 @@
    the list of apps, and the screens that switch between them.
 
    Every app is a script that calls Hub.register({...}) when it loads:
-     id, section ("learning" or "games"), title, icon, blurb,
+     id, section ("learning", "games" or "build"), title, icon, blurb,
      stat()   optional: a short line for its card, like "Best: 2:15"
      badges   optional: [{ id, icon, name, desc, test() }] for the section's trophy shelf
      mount(host) builds the app inside host the first time it's opened, and returns { open(), close() }
@@ -114,7 +114,8 @@
   /* ---------------- the apps ---------------- */
   const SECTIONS = {
     learning: { title: "Learning", icon: "📚", blurb: "Practise a subject, with a worked answer for every question.", noun: ["subject", "subjects"] },
-    games:    { title: "Games",    icon: "🎮", blurb: "Run, chomp and blast your way to a new best score.",          noun: ["game", "games"] }
+    games:    { title: "Games",    icon: "🎮", blurb: "Run, chomp and blast your way to a new best score.",          noun: ["game", "games"] },
+    build:    { title: "Build",    icon: "🏗️", blurb: "Walk around a world of blocks and build whatever you dream up.", noun: ["world", "worlds"] }
   };
   const apps = [];
   function register(app){
@@ -128,7 +129,7 @@
     { title: "⚽ Sports", ids: ["soccer", "hoops", "pool", "bowling", "ping-pong"] },
     { title: "🗺️ Adventure", ids: ["forest", "parkour", "robot-tag", "tag-rush", "zombie-blaster", "egg-heist", "critters"] },
     { title: "👾 Arcade", ids: ["pacman", "pacman-3d", "snake", "lander", "blockdrop", "bricks", "frog", "tower", "fishing"] },
-    { title: "🧱 Build & grow", ids: ["blocks", "garden", "storm-fire"] },
+    { title: "🌱 Grow & upgrade", ids: ["garden", "storm-fire"] },
     { title: "🧠 Brain games", ids: ["chess", "memory"] }
   ];
 
@@ -315,6 +316,9 @@
   function route(){
     const [section, appId] = location.hash.replace(/^#\/?/, "").split("/");
     const app = apps.find(a => a.section === section && a.id === appId);
+    // an old link to an app that has moved to another section (Block World used to be in Games)
+    const moved = !app && appId && apps.find(a => a.id === appId);
+    if (moved) { location.replace(`#/${moved.section}/${moved.id}`); return; }
     if (pages[section]) show({ section: null, app: null, page: pages[section] });
     else if (app) show({ section, app });
     else if (SECTIONS[section]) show({ section, app: null });
@@ -339,12 +343,14 @@
   document.getElementById("appSearch").addEventListener("input", renderSearch);
 
   // time spent: every 15 seconds with an app open on a visible page, add it to today's learning or games time
-  // (store.timeLog[day] = { learning, games } in seconds, the last 60 days), for the Grown-ups weekly summary
+  // (store.timeLog[day] = { learning, games } in seconds, the last 60 days), for the Grown-ups weekly summary.
+  // Building counts as play time.
   setInterval(() => {
     if (!current || !current.app || document.hidden) return;
     const d = new Date(), day = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     const log = store.timeLog = store.timeLog || {}, t = log[day] = log[day] || { learning: 0, games: 0 };
-    t[current.app.section] = (t[current.app.section] || 0) + 15;
+    const kind = current.app.section === "learning" ? "learning" : "games";
+    t[kind] = (t[kind] || 0) + 15;
     const days = Object.keys(log).sort(); while (days.length > 60) delete log[days.shift()];
     saveStore();
   }, 15000);

@@ -1,6 +1,6 @@
 # 🎒 Learn & Play
 
-Learning and games for a 5th grader in Zug. The home screen asks **Learning** or **Games**, and each section lists its apps and has its own 🏆 trophy shelf.
+Learning and games for a 5th grader in Zug. The home screen asks **Learning**, **Games** or **Build**, and each section lists its apps and has its own 🏆 trophy shelf.
 
 ▶️ **Play it here: https://nicolanardino.github.io/child-learning/**
 
@@ -54,14 +54,18 @@ Every subject has three levels (Warm-up, Practice, Challenge), a worked answer f
 - 🐸 **Frog Hop**: cross a road of race cars and a river of logs.
 - 🏗️ **Endless Tower** and 🎣 **Fishing Beach** (500 fish to catch).
 
-**🧱 Build & grow**
-- ⛏️ **Block World**: a Minecraft-style sandbox, in Creative or Survival.
+**🌱 Grow & upgrade**
 - 🌱 **Garden Grow**: like Grow a Garden on Roblox.
 - 🔥 **Storm Fire**: feed a campfire with twigs, logs, coal and dragon breath so it survives 10 storms (the last needs a level 100 fire). It evolves up to a Phoenix Fire and a 🌈 Rainbow Fire.
 
 **🧠 Brain games**
 - ♟️ **Blox Chess**: against BloxBot or a friend.
 - 🃏 **Memory Match**: find the pairs, alone or with 2 players.
+
+## 🏗️ Build
+
+- ⛏️ **Block World**: a Minecraft-style sandbox, in Creative or Survival.
+- 🏡 **Dream Builder**: a flat land of your own, in first person. Press B and a house, tower, castle, tree house, pyramid, fountain or rocket pops up in front of you (🎲 for a surprise, Z to take it back), then build on it with your own blocks.
 
 ## How it's built
 
@@ -90,7 +94,7 @@ Every pull request runs `.github/workflows/smoke.yml`: every script must parse, 
 
    ```js
    Hub.register({
-     id: "snake", section: "games",              // "learning" or "games"
+     id: "snake", section: "games",              // "learning", "games" or "build"
      title: "Rainbow Snake", icon: "🐍",
      blurb: "One line about the app, for its card.",
      stat: () => "",                              // optional: shown on its card

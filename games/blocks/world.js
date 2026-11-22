@@ -403,6 +403,18 @@
     // then everything the player built or dug
     if (edits) Object.keys(edits).forEach(k => { world[+k] = edits[k]; });
   }
+  // Dream Builder's world: flat grass with room for anything, a sandy beach round the edge, and a few flowers
+  const FLAT = BEACH + 1;   // the height of the grass, just above the beach, so spawnPoint likes it
+  function generateFlat(edits){
+    world.fill(0);
+    for (let z = 0; z < WD; z++) for (let x = 0; x < WW; x++) {
+      const edge = Math.min(x, z, WW - 1 - x, WD - 1 - z) < 2;
+      for (let y = 0; y <= FLAT; y++) world[at(x, y, z)] = y === FLAT ? (edge ? ID.SAND : ID.GRASS) : y >= FLAT - 3 ? (edge ? ID.SAND : ID.DIRT) : ID.STONE;
+      const n = hash2(x, z, 77);
+      if (!edge && n < 0.012) world[at(x, FLAT + 1, z)] = n < 0.006 ? ID.POPPY : ID.DANDELION;
+    }
+    if (edits) Object.keys(edits).forEach(k => { world[+k] = edits[k]; });
+  }
   // where you start: the dry spot closest to the middle
   function spawnPoint(){
     const cx = WW >> 1, cz = WD >> 1;
@@ -436,5 +448,5 @@
     };
   }
 
-  window.BlockWorld = { WW, WH, WD, SEA, world, at, ID, K, TEX, textures, T, TILE_COLS, TILE_ROWS, BLOCKS, FACE, KIND, IS_SOLID, IS_OPAQUE, EMIT, TORCH_DIR, wallTorch, FACE6, isFurnace, furnaceFacing, HOTBAR, skyState, atlasData, atlasCanvas, generate, heightAt, spawnPoint, hash2 };
+  window.BlockWorld = { WW, WH, WD, SEA, world, at, ID, K, TEX, textures, T, TILE_COLS, TILE_ROWS, BLOCKS, FACE, KIND, IS_SOLID, IS_OPAQUE, EMIT, TORCH_DIR, wallTorch, FACE6, isFurnace, furnaceFacing, HOTBAR, skyState, atlasData, atlasCanvas, generate, generateFlat, heightAt, spawnPoint, hash2 };
 })();
