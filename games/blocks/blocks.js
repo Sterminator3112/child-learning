@@ -3,7 +3,19 @@
    what you dig, build with what you have, and craft new things at a crafting table and a furnace.
    The picture comes from gl.js (WebGL, or soft.js on a device without it), the Survival rules from items.js
    and the inventory screens from inventory.js; this file is the game itself: moving, digging, building,
-   the hotbar and saving. Your builds are saved (only the blocks you changed, not the whole world). */
+   the hotbar and saving. Your builds are saved (only the blocks you changed, not the whole world).
+
+   Dream Builder (games/builder) is made from the very same game: BlockWorld.makeGame(cfg) gives back a
+   mount for Hub.register, and cfg says what's different:
+     id, prefix      the app id, and the short start of its element ids ("bl" here)
+     title, icon     shown in the bar and on the start panel
+     data()          the object its progress is saved in (Block World uses Hub.store itself, for old saves)
+     survival        true if the Survival mode is there to pick
+     flat            true for a flat, empty world instead of the island
+     builds          a list of ready-made buildings to pop into the world (B opens the list, Z takes one back)
+     intro           the start panel's words, when there's no Survival to explain
+   There is only one world in memory, so whichever game was opened last has it loaded; opening the other
+   one loads its own world again. */
 (function(){
   "use strict";
   const store = Hub.store;
@@ -16,7 +28,7 @@
   const WORLD_VERSION = 2; // bumped when the terrain changed shape, so an old save doesn't land in the wrong place
 
   Hub.register({
-    id: "blocks", section: "games", title: "Block World", icon: "⛏️",
+    id: "blocks", section: "build", title: "Block World", icon: "⛏️",
     blurb: "Dig, build and explore a world made of blocks. Make anything you can imagine!",
     stat: () => store.blocksPlaced ? "Built " + store.blocksPlaced + " blocks" : "",
     badges: [
@@ -24,43 +36,59 @@
       { id: "blockDig",   icon: "⛏️", name: "Miner",    desc: "Dig up 100 blocks",              test: () => (store.blocksBroken || 0) >= 100 },
       { id: "blockHigh",  icon: "☁️", name: "Sky High", desc: "Climb up to the clouds",         test: () => (store.blocksHigh || 0) >= 26 }
     ],
-    mount
+    mount: makeGame({ id: "blocks", prefix: "bl", title: "Block World", icon: "⛏️", data: () => store, survival: true })
   });
 
   // what the pointer can land on: everything but air and water
   const HIT = new Uint8Array(256);
   BLOCKS.forEach((b, id) => { if (b && b.kind !== K.WATER) HIT[id] = 1; });
 
-  function mount(host){
+  function makeGame(cfg){ return host => mount(host, cfg); }
+  BW.makeGame = makeGame;
+
+  function mount(host, cfg){
     BW.textures();
+    const P = cfg.prefix, $ = id => document.getElementById(P + id);
+    const S = cfg.data();          // where this game's progress is saved
+    const builds = cfg.builds || [];
     host.innerHTML = `
-    <section class="game-screen" id="blOverlay" hidden aria-label="Block World">
+    <section class="game-screen bl-screen" id="${P}Overlay" hidden aria-label="${cfg.title}">
       <div class="game-box">
         <div class="game-hud">
-          <h2>⛏️ Block World</h2>
-          <span class="mono game-stat" id="blPos">📍 0 0 0</span>
-          <button class="mono game-stat bl-time" id="blTime" type="button" title="Change the time of day">☀️ Day</button>
-          <span class="mono game-stat" id="blMode">🚶 Walking</span>
-          <button class="btn ghost small" id="blCloseBtn" type="button">✕ Exit</button>
+          <h2>${cfg.icon} ${cfg.title}</h2>
+          <span class="mono game-stat" id="${P}Pos">📍 0 0 0</span>
+          <button class="mono game-stat bl-time" id="${P}Time" type="button" title="Change the time of day">☀️ Day</button>
+          <span class="mono game-stat" id="${P}Mode">🚶 Walking</span>
+          <button class="btn ghost small" id="${P}CloseBtn" type="button">✕ Exit</button>
         </div>
         <div class="game-stage">
-          <canvas id="blCanvas" width="960" height="540"></canvas>
-          <div class="bl-water" id="blWater" hidden></div>
+          <canvas class="bl-canvas" id="${P}Canvas" width="960" height="540"></canvas>
+          <div class="bl-water" id="${P}Water" hidden></div>
           <div class="bl-cross" aria-hidden="true"></div>
-          <div class="bl-name" id="blName" aria-live="polite"></div>
-          <div class="bl-hotbar" id="blHotbar"></div>
-          <div class="game-panel bl-panel" id="blPanel">
-            <div class="game-panel-title">⛏️ Block World</div>
-            <div class="game-panel-text" id="blPanelText"></div>
-            <div class="segmented bl-modes" role="group" aria-label="Game mode">
+          <div class="bl-name" id="${P}Name" aria-live="polite"></div>
+          <div class="bl-hotbar" id="${P}Hotbar"></div>
+          <div class="game-panel bl-panel" id="${P}Panel">
+            <div class="game-panel-title">${cfg.icon} ${cfg.title}</div>
+            <div class="game-panel-text" id="${P}PanelText"></div>
+            <div class="segmented bl-modes" role="group" aria-label="Game mode" ${cfg.survival ? "" : "hidden"}>
               <button type="button" data-mode="creative">🎨 Creative</button>
               <button type="button" data-mode="survival">⛏️ Survival</button>
             </div>
-            <button class="btn" id="blPlayBtn" type="button">▶ Play</button>
-            <button class="btn ghost small" id="blNewBtn" type="button">🌱 New world</button>
+            <button class="btn" id="${P}PlayBtn" type="button">▶ Play</button>
+            <button class="btn ghost small" id="${P}NewBtn" type="button">${cfg.flat ? "🧹 Clear the land" : "🌱 New world"}</button>
+          </div>
+          <div class="bl-builds" id="${P}Builds" hidden role="dialog" aria-label="Pick a building">
+            <div class="bl-builds-title">🏗️ What shall we build?</div>
+            <div class="bl-builds-grid">${builds.map((b, i) => `<button type="button" class="bl-build" data-build="${i}"><span class="bl-build-icon">${b.icon}</span><span>${b.name}</span><span class="bl-key">${i + 1}</span></button>`).join("")}
+              <button type="button" class="bl-build" data-build="surprise"><span class="bl-build-icon">🎲</span><span>Surprise!</span><span class="bl-key">0</span></button>
+            </div>
+            <div class="bl-builds-row">
+              <button type="button" class="btn ghost small" data-builds="undo">↩️ Take back (Z)</button>
+              <button type="button" class="btn ghost small" data-builds="close">✕ Close (B)</button>
+            </div>
           </div>
         </div>
-        <div class="game-help">W A S D to move · mouse or ← → ↑ ↓ to look · Space to jump or swim up · left click to dig · right click to build · 1–9, 0, – or the mouse wheel to pick a block · F to fly (Space up, Shift down) · E for your inventory · T for another time of day · Esc or P to pause and free your mouse</div>
+        <div class="game-help">W A S D to move · mouse or ← → ↑ ↓ to look · Space to jump or swim up · left click to dig · right click to build · 1–9, 0, – or the mouse wheel to pick a block · F to fly (Space up, Shift down) · ${builds.length ? "B for a ready-made building · Z to take the last one back" : "E for your inventory"} · T for another time of day · Esc or P to pause and free your mouse</div>
         <div class="game-touch bl-touch">
           <button class="btn ghost fun-dpad" data-bkey="left" type="button" aria-label="Step left">◀</button>
           <button class="btn ghost fun-dpad" data-bkey="forward" type="button" aria-label="Walk forward">▲</button>
@@ -70,12 +98,13 @@
           <button class="btn" data-bkey="mine" type="button" aria-label="Dig">⛏</button>
           <button class="btn" data-bkey="place" type="button" aria-label="Build">🧱</button>
           <button class="btn ghost" data-bkey="fly" type="button" aria-label="Fly or walk">✈</button>
-          <button class="btn ghost" data-bkey="bag" type="button" aria-label="Inventory">🎒</button>
+          ${builds.length ? `<button class="btn" data-bkey="builds" type="button" aria-label="Ready-made buildings">🏡</button>
+          <button class="btn ghost" data-bkey="undo" type="button" aria-label="Take back the last building">↩️</button>` : `<button class="btn ghost" data-bkey="bag" type="button" aria-label="Inventory">🎒</button>`}
         </div>
       </div>
     </section>`;
 
-    let canvas = document.getElementById("blCanvas");
+    let canvas = $("Canvas");
     // the real picture needs WebGL; if that's missing, fall back to the plain ray-caster on a fresh canvas
     let renderer = null;
     try { renderer = BW.createGL(canvas); } catch (e) { renderer = null; }
@@ -87,17 +116,17 @@
     }
     const gpu = !!renderer.gl;
 
-    const overlay = document.getElementById("blOverlay");
-    const panel = document.getElementById("blPanel");
-    const panelText = document.getElementById("blPanelText");
-    const playBtn = document.getElementById("blPlayBtn");
-    const newBtn = document.getElementById("blNewBtn");
-    const posEl = document.getElementById("blPos");
-    const modeEl = document.getElementById("blMode");
-    const hotbar = document.getElementById("blHotbar");
-    const nameEl = document.getElementById("blName");
-    const waterEl = document.getElementById("blWater");
-    const timeEl = document.getElementById("blTime");
+    const overlay = $("Overlay");
+    const panel = $("Panel");
+    const panelText = $("PanelText");
+    const playBtn = $("PlayBtn");
+    const newBtn = $("NewBtn");
+    const posEl = $("Pos");
+    const modeEl = $("Mode");
+    const hotbar = $("Hotbar");
+    const nameEl = $("Name");
+    const waterEl = $("Water");
+    const timeEl = $("Time");
 
     const HALF = 0.3, HEIGHT = 1.8, EYE = 1.62, REACH = 6;
     const GRAVITY = 26, JUMP = 8.2, WALK = 4.6, FLY = 10;
@@ -106,14 +135,14 @@
     let isOpen = false, running = false, last = 0, frame = 0, loadedSeed = 0;
     const p = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, onGround: false, fly: false, wet: false };
     let yaw = 0, pitch = 0, sel = 0, mineT = 0, saveT = 0, swing = 0, nameT = 0;
-    let dayT = typeof store.blockTime === "number" ? store.blockTime : 0.1;  // 0 sunrise, 0.25 noon, 0.5 sunset, 0.75 midnight
+    let dayT = typeof S.blockTime === "number" ? S.blockTime : 0.1;  // 0 sunrise, 0.25 noon, 0.5 sunset, 0.75 midnight
     let target = null;
     const bits = []; // the flying bits of a dug block, and the flames
     const torches = new Set(); // where the torches are, for the flames
     const isTorch = id => KIND[id] === K.TORCH;
     // Creative or Survival, the bag, and the furnaces (each world keeps its own)
-    let survival = store.blockMode === "survival";
-    const bag = () => store.blockInv;
+    let survival = !!cfg.survival && S.blockMode === "survival";
+    const bag = () => S.blockInv;
     let mining = null;        // the block you're digging in Survival, and how far along you are
     let furnSaveT = 0;
     const keys = { forward: false, back: false, left: false, right: false, jump: false, down: false, mine: false, lookL: false, lookR: false, lookU: false, lookD: false };
@@ -161,7 +190,7 @@
     function setBlock(x, y, z, id){
       const i = at(x, y, z);
       world[i] = id;
-      store.blockEdits[i] = id;
+      S.blockEdits[i] = id;
       if (isTorch(id)) torches.add(i); else torches.delete(i);
       renderer.updateBlock(x, y, z);
     }
@@ -209,11 +238,11 @@
       if (survival) {
         collect(SV.drops(id, heldId()));
         if (isFurnace(id)) {
-          const f = store.blockFurnaces[at(t.x, t.y, t.z)];
+          const f = S.blockFurnaces[at(t.x, t.y, t.z)];
           if (f) collect([f.input, f.fuel, f.output].filter(Boolean).map(s => [s.id, s.n]));
         }
       }
-      if (isFurnace(id)) delete store.blockFurnaces[at(t.x, t.y, t.z)];
+      if (isFurnace(id)) delete S.blockFurnaces[at(t.x, t.y, t.z)];
       setBlock(t.x, t.y, t.z, 0);
       debris(t.x, t.y, t.z, id);
       // torches it was holding up fall off (and in Survival you catch them)
@@ -232,7 +261,7 @@
       breakAt(t);
       Fun.sfx.pop();
       swing = 0.001;
-      store.blocksBroken = (store.blocksBroken || 0) + 1;
+      S.blocksBroken = (S.blocksBroken || 0) + 1;
       Hub.checkBadges(); saveSoon();
     }
     // Survival digging takes time (less with the right tool): hold the button down and the cracks spread
@@ -255,7 +284,7 @@
       if (isFurnace(id)) {
         if (!survival) { tell("Furnaces work in Survival"); return true; }
         const k = at(t.x, t.y, t.z);
-        const f = store.blockFurnaces[k] || (store.blockFurnaces[k] = SV.newFurnace());
+        const f = S.blockFurnaces[k] || (S.blockFurnaces[k] = SV.newFurnace());
         openScreen(() => ui.openFurnace(f));
         return true;
       }
@@ -285,7 +314,7 @@
       }
       if (id === ID.FURNACE) { // its front faces you
         id = furnaceFacing(p.x - (x + 0.5), p.z - (z + 0.5));
-        store.blockFurnaces[at(x, y, z)] = SV.newFurnace();
+        S.blockFurnaces[at(x, y, z)] = SV.newFurnace();
       }
       if (survival) {
         const slot = bag()[sel];
@@ -295,9 +324,93 @@
       setBlock(x, y, z, id);
       Fun.sfx.thunk();
       swing = 0.001;
-      store.blocksPlaced = (store.blocksPlaced || 0) + 1;
+      S.blocksPlaced = (S.blocksPlaced || 0) + 1;
       Hub.checkBadges(); saveSoon();
     }
+
+    /* ---------------- ready-made buildings (Dream Builder): one pops up right in front of you ----------------
+       A building is { icon, name, w, d, h, make(put) }: w wide, d deep and h tall, and make calls
+       put(x, y, z, block) for each block, where x goes left to right across its front, y goes up from the
+       ground (-1 is the ground itself, for a floor) and z goes back from the front. Before it's built,
+       everything inside its box is cleared away, so it never ends up full of grass or old blocks. */
+    const undo = [];   // the last few buildings: every block they changed, with the block and the saved change that were there before
+    const buildsEl = $("Builds");
+    const buildsOpen = () => !buildsEl.hidden;
+    const screenOpen = () => ui.isOpen() || buildsOpen();
+    function groundAt(x, z){
+      for (let y = WH - 1; y > 0; y--) if (IS_SOLID[idAt(x, y, z)] === 1) return y + 1;
+      return 1;
+    }
+    function stamp(b){
+      // it faces you: turn to the nearest of the four ways you could be looking
+      const sy = Math.sin(yaw), cy = Math.cos(yaw);
+      const fx = Math.abs(sy) > Math.abs(cy) ? Math.sign(sy) : 0, fz = fx ? 0 : (Math.sign(cy) || 1);
+      const rx = fz, rz = -fx;        // and to your right
+      const half = Math.floor(b.w / 2);
+      // its front starts three steps ahead of you; flying, it sits on the ground below
+      const fx0 = Math.floor(p.x) + fx * 3, fz0 = Math.floor(p.z) + fz * 3;
+      const mid = Math.floor(b.d / 2);
+      const oy = p.fly || !p.onGround ? groundAt(fx0 + fx * mid, fz0 + fz * mid) : Math.floor(p.y + 0.01);
+      const cell = (lx, ly, lz) => {
+        const x = fx0 + rx * (lx - half) + fx * lz, y = oy + ly, z = fz0 + rz * (lx - half) + fz * lz;
+        return x < 0 || x >= WW || z < 0 || z >= WD || y < 1 || y >= WH ? -1 : at(x, y, z);
+      };
+      const before = new Map(), after = new Map();
+      for (let ly = 0; ly < b.h; ly++) for (let lz = 0; lz < b.d; lz++) for (let lx = 0; lx < b.w; lx++) { const i = cell(lx, ly, lz); if (i >= 0) after.set(i, 0); }
+      b.make((lx, ly, lz, id) => { const i = cell(lx, ly, lz); if (i >= 0) after.set(i, id); });
+      let placed = 0;
+      after.forEach((id, i) => {
+        if (world[i] === id) return;
+        before.set(i, [world[i], S.blockEdits[i]]);
+        world[i] = id; S.blockEdits[i] = id;
+        if (isTorch(id)) torches.add(i); else torches.delete(i);
+        if (id) placed++;
+      });
+      if (!before.size) { tell("There's no room for it here!"); Fun.sfx.nope(); return; }
+      undo.push(before); if (undo.length > 10) undo.shift();
+      renderer.rebuildAll();
+      while (p.y < WH && collides(p.x, p.y, p.z)) p.y += 1;   // just in case: never get stuck inside it
+      S.buildsMade = (S.buildsMade || 0) + 1;
+      S.buildBlocks = (S.buildBlocks || 0) + placed;
+      tell(`${b.icon} ${b.name}! (${placed} blocks)`);
+      Fun.sfx.tada();
+      Hub.checkBadges(); saveSoon();
+    }
+    function takeBack(){
+      const before = undo.pop();
+      if (!before) { tell("Nothing to take back"); Fun.sfx.nope(); return; }
+      before.forEach(([id, edit], i) => {
+        world[i] = id;
+        if (edit === undefined) delete S.blockEdits[i]; else S.blockEdits[i] = edit;   // (so the save doesn't fill up with nothing)
+        if (isTorch(id)) torches.add(i); else torches.delete(i);
+      });
+      renderer.rebuildAll();
+      while (p.y < WH && collides(p.x, p.y, p.z)) p.y += 1;
+      tell("↩️ Taken back");
+      Fun.sfx.whoosh();
+      saveSoon();
+    }
+    function openBuilds(){
+      if (!builds.length) return;
+      openScreen(() => { buildsEl.hidden = false; buildsEl.querySelector(".bl-build").focus(); });
+    }
+    function closeBuilds(){
+      buildsEl.hidden = true;
+      if (isOpen && running) { canvas.focus(); lockMouse(); }
+    }
+    function pickBuild(i){
+      if (i === "surprise") i = Math.floor(Math.random() * builds.length);
+      const b = builds[i];
+      if (!b) return;
+      closeBuilds();
+      stamp(b);
+    }
+    buildsEl.addEventListener("click", e => {
+      const t = e.target.closest("button"); if (!t) return;
+      if (t.dataset.build !== undefined) pickBuild(t.dataset.build === "surprise" ? "surprise" : +t.dataset.build);
+      else if (t.dataset.builds === "undo") { closeBuilds(); takeBack(); }
+      else if (t.dataset.builds === "close") closeBuilds();
+    });
 
     /* ---------------- the animals: pigs and chickens wander about (poke one and it runs off squealing!) ---------------- */
     const mobs = [];
@@ -479,7 +592,7 @@
       mineStep(dt);
       updateMobs(dt);
       const high = Math.floor(p.y);
-      if (high > (store.blocksHigh || 0)) { store.blocksHigh = high; Hub.checkBadges(); saveSoon(); }
+      if (high > (S.blocksHigh || 0)) { S.blocksHigh = high; Hub.checkBadges(); saveSoon(); }
     }
 
     /* ---------------- the hotbar: little 3D block icons, like the real one ---------------- */
@@ -570,7 +683,7 @@
       const t = dayT % 1;
       const next = TIMES.find(x => x.t > t + 0.02) || TIMES[0];
       dayT = next.t;
-      store.blockTime = dayT;
+      S.blockTime = dayT;
       saveSoon();
       timeEl.textContent = next.icon + " " + next.name;
     }
@@ -589,7 +702,7 @@
       getInv: bag,
       icon,
       onChange(){ refreshHotbar(); saveSoon(); },
-      onCraft(){ store.blocksCrafted = (store.blocksCrafted || 0) + 1; }
+      onCraft(){ S.blocksCrafted = (S.blocksCrafted || 0) + 1; }
     });
     // open one of the screens: the mouse is let go so you can click on things
     function openScreen(how){
@@ -605,15 +718,16 @@
     // Creative or Survival, chosen on the start screen
     const modeBtns = [...overlay.querySelectorAll(".bl-modes button")];
     function setMode(m){
+      if (!cfg.survival) m = "creative";
       survival = m === "survival";
-      store.blockMode = m;
+      S.blockMode = m;
       if (survival) p.fly = false;
       sel = Math.min(sel, slotCount() - 1);
       modeBtns.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
       overlay.querySelector('[data-bkey="fly"]').hidden = survival;
       showMode();
       buildHotbar();
-      panelText.textContent = survival
+      panelText.textContent = cfg.intro ? cfg.intro : survival
         ? "Survival: hold the left button to dig, and what you dig goes in your bag (press E or 🎒). Build with what you have, and craft new things: start by punching a tree for logs, make planks, then a crafting table. Stone needs a pickaxe!"
         : "Creative: dig, build and explore with every block! Left click digs a block and right click puts one down. Pick what to build with in the bar at the bottom. Swim in the lakes, and press F to fly.";
       saveSoon();
@@ -627,20 +741,22 @@
       p.vx = p.vy = p.vz = 0; yaw = 0; pitch = -0.15;
     }
     function ensureWorld(){
-      if (store.blockVer !== WORLD_VERSION) { // an older world: start fresh rather than land builds in the wrong place
-        store.blockVer = WORLD_VERSION; store.blockSeed = 0; store.blockEdits = {}; store.blockPos = null;
+      if (S.blockVer !== WORLD_VERSION) { // an older world: start fresh rather than land builds in the wrong place
+        S.blockVer = WORLD_VERSION; S.blockSeed = 0; S.blockEdits = {}; S.blockPos = null;
       }
-      if (!store.blockSeed) store.blockSeed = 1 + Math.floor(Math.random() * 99999);
-      if (!store.blockEdits) store.blockEdits = {};
-      if (!Array.isArray(store.blockInv) || store.blockInv.length !== SV.SLOTS) store.blockInv = SV.newInventory();
-      if (!store.blockFurnaces) store.blockFurnaces = {};
-      if (loadedSeed === store.blockSeed) return;
-      generate(store.blockSeed, store.blockEdits);
+      if (!S.blockSeed) S.blockSeed = 1 + Math.floor(Math.random() * 99999);
+      if (!S.blockEdits) S.blockEdits = {};
+      if (!Array.isArray(S.blockInv) || S.blockInv.length !== SV.SLOTS) S.blockInv = SV.newInventory();
+      if (!S.blockFurnaces) S.blockFurnaces = {};
+      if (loadedSeed === S.blockSeed && BW.loadedBy === cfg.id) return;   // (the other game may have loaded its own world since)
+      if (cfg.flat) BW.generateFlat(S.blockEdits); else generate(S.blockSeed, S.blockEdits);
+      BW.loadedBy = cfg.id;
+      undo.length = 0;
       torches.clear();
-      Object.keys(store.blockEdits).forEach(k => { if (isTorch(world[+k])) torches.add(+k); });
+      Object.keys(S.blockEdits).forEach(k => { if (isTorch(world[+k])) torches.add(+k); });
       renderer.rebuildAll();
-      loadedSeed = store.blockSeed;
-      const s = store.blockPos;
+      loadedSeed = S.blockSeed;
+      const s = S.blockPos;
       spawn();
       if (s && s.length === 5 && !collides(s[0], s[1], s[2])) { p.x = s[0]; p.y = s[1]; p.z = s[2]; yaw = s[3]; pitch = s[4]; }
       spawnMobs();
@@ -659,16 +775,16 @@
       lockMouse();
     }
     newBtn.addEventListener("click", () => {
-      if (!confirm("Start a brand new world? The one you've built will be gone.")) return;
-      store.blockSeed = 1 + Math.floor(Math.random() * 99999);
-      store.blockEdits = {};
-      store.blockPos = null;
-      store.blockInv = SV.newInventory();
-      store.blockFurnaces = {};
+      if (!confirm(cfg.flat ? "Clear the land? Everything you've built will be gone." : "Start a brand new world? The one you've built will be gone.")) return;
+      S.blockSeed = 1 + Math.floor(Math.random() * 99999);
+      S.blockEdits = {};
+      S.blockPos = null;
+      S.blockInv = SV.newInventory();
+      S.blockFurnaces = {};
       Hub.saveStore();
       ensureWorld();
       p.fly = false; showMode(); refreshHotbar();
-      panelText.textContent = "A brand new world is ready. Have fun!";
+      panelText.textContent = cfg.flat ? "The land is clear and ready for something new. Have fun!" : "A brand new world is ready. Have fun!";
     });
     playBtn.addEventListener("click", start);
 
@@ -677,8 +793,8 @@
       ensureWorld();
       Fun.screen(overlay, true);
       releaseKeys();
-      setMode(store.blockMode === "survival" ? "survival" : "creative");
-      playBtn.textContent = store.blocksPlaced || store.blocksBroken ? "▶ Continue" : "▶ Play";
+      setMode(S.blockMode === "survival" ? "survival" : "creative");
+      playBtn.textContent = S.blocksPlaced || S.blocksBroken ? "▶ Continue" : "▶ Play";
       panel.hidden = false;
       last = performance.now();
       requestAnimationFrame(loop);
@@ -686,11 +802,12 @@
     }
     function close(){
       ui.close();
+      buildsEl.hidden = true;
       isOpen = false; running = false;
       Fun.screen(overlay, false);
       if (document.pointerLockElement === canvas) document.exitPointerLock();
-      store.blockPos = [p.x, p.y, p.z, yaw, pitch];
-      store.blockTime = dayT;
+      S.blockPos = [p.x, p.y, p.z, yaw, pitch];
+      S.blockTime = dayT;
       clearTimeout(saveT);
       Hub.saveStore();
     }
@@ -699,13 +816,13 @@
       if (!isOpen) return;
       const dt = Fun.dt(now, last);
       last = now; frame++;
-      if (running && !ui.isOpen()) step(dt);
+      if (running && !screenOpen()) step(dt);
       else if (running) { for (let k = 0; k < 3; k++) move(dt / 3); }   // with a screen open you stand still, but you still fall
       if (running) {
         dayT = (dayT + dt / CYCLE) % 1;
         // every furnace keeps cooking, even when you're not looking at it
         let busy = false;
-        for (const k in store.blockFurnaces) { const f = store.blockFurnaces[k]; SV.tickFurnace(f, dt); if (f.burn > 0 || f.cook > 0) busy = true; }
+        for (const k in S.blockFurnaces) { const f = S.blockFurnaces[k]; SV.tickFurnace(f, dt); if (f.burn > 0 || f.cook > 0) busy = true; }
         if (busy && (furnSaveT += dt) > 4) { furnSaveT = 0; saveSoon(); }
         ui.tick();
       }
@@ -729,14 +846,14 @@
       waterEl.style.opacity = String(0.3 + 0.7 * sky.day);
       renderer.draw({
         eye: [p.x, eyeY, p.z], yaw, pitch, time: now / 1000, swing, held: true, underwater: under, sky,
-        target: target && !ui.isOpen() ? [target.x, target.y, target.z] : null, particles: bits, mobs,
+        target: target && !screenOpen() ? [target.x, target.y, target.z] : null, particles: bits, mobs,
         crack: mining && mining.t > 0 ? { x: mining.x, y: mining.y, z: mining.z, progress: Math.min(1, mining.t / mining.need) } : null
       });
       if (frame % 8 === 0) {
         posEl.textContent = `📍 ${Math.floor(p.x)} ${Math.floor(p.y)} ${Math.floor(p.z)}`;
         const lbl = timeLabel();
         if (timeEl.textContent !== lbl) timeEl.textContent = lbl;
-        store.blockTime = dayT;
+        S.blockTime = dayT;
       }
       requestAnimationFrame(loop);
     }
@@ -749,6 +866,13 @@
     };
     window.addEventListener("keydown", e => {
       if (!isOpen) return;
+      if (buildsOpen()) {   // the list of buildings: a number picks one
+        const digit = /^Digit([0-9])$/.exec(e.code);
+        if (e.key === "Escape" || e.code === "KeyB") { e.preventDefault(); closeBuilds(); }
+        else if (e.code === "KeyZ") { closeBuilds(); takeBack(); }
+        else if (digit) pickBuild(digit[1] === "0" ? "surprise" : +digit[1] - 1);
+        return;
+      }
       if (e.key === "Escape") {
         e.preventDefault();
         if (ui.isOpen()) ui.close();
@@ -760,6 +884,8 @@
       if (!running) return;
       if (e.code === "KeyE") { if (!e.repeat) toggleBag(); return; }
       if (ui.isOpen()) return;   // the screen has the mouse; keys wait
+      if (builds.length && e.code === "KeyB") { if (!e.repeat) openBuilds(); return; }
+      if (builds.length && e.code === "KeyZ") { if (!e.repeat) takeBack(); return; }
       if (e.code === "KeyF") { if (!e.repeat) toggleFly(); return; }
       if (e.code === "KeyT") { if (!e.repeat) nextTime(); return; }
       if (e.code === "Minus") { if (!survival) select(10); return; }
@@ -782,12 +908,12 @@
     const stick = Fun.joystick(canvas.parentElement);   // on phones: walk and step; drag the world to look
     document.addEventListener("pointerlockchange", () => {
       lockedAt = performance.now();
-      if (ui.isOpen() && document.pointerLockElement === canvas) document.exitPointerLock(); // a screen is open: keep the mouse free
+      if (screenOpen() && document.pointerLockElement === canvas) document.exitPointerLock(); // a screen is open: keep the mouse free
       if (document.pointerLockElement === canvas) tip.show("🖱️ Press Esc to get your mouse back");
       else {
         unlockedAt = performance.now(); tip.hide();
         // the mouse got let go (Esc, or another window): pause, like Minecraft does
-        if (isOpen && running && !ui.isOpen()) pause();
+        if (isOpen && running && !screenOpen()) pause();
       }
     });
     function pause(){
@@ -808,7 +934,7 @@
     });
     let lookId = null, lookX = 0, lookY = 0;
     canvas.addEventListener("pointerdown", e => {
-      if (!running) return;
+      if (!running || buildsOpen()) return;
       if (e.pointerType === "touch") { // a finger dragging on the picture turns you
         lookId = e.pointerId; lookX = e.clientX; lookY = e.clientY;
         canvas.setPointerCapture(e.pointerId);
@@ -842,8 +968,10 @@
       const k = btn.dataset.bkey;
       btn.addEventListener("pointerdown", e => {
         e.preventDefault();
-        if (!running) return;
-        if (k === "place") build();
+        if (!running || buildsOpen()) return;
+        if (k === "builds") openBuilds();
+        else if (k === "undo") takeBack();
+        else if (k === "place") build();
         else if (k === "fly") toggleFly();
         else if (k === "bag") toggleBag();
         else if (k === "mine") { if (!survival) dig(); keys.mine = true; mineT = 0.3; mining = null; }
@@ -851,12 +979,12 @@
       });
       ["pointerup", "pointercancel", "pointerleave"].forEach(ev => btn.addEventListener(ev, () => {
         if (k === "mine") keys.mine = false;
-        else if (k !== "place" && k !== "fly" && k !== "bag") keys[k] = false;
+        else if (k in keys) keys[k] = false;
       }));
     });
 
-    document.getElementById("blCloseBtn").addEventListener("click", () => Hub.leave());
-    Fun.soundButton(document.getElementById("blCloseBtn"));
+    $("CloseBtn").addEventListener("click", () => Hub.leave());
+    Fun.soundButton($("CloseBtn"));
 
     return { open, close };
   }

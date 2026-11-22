@@ -16,7 +16,7 @@
   const logOf = s => (s.data.log && s.data.log[today()]) || { a: 0, c: 0 };
   const allLog = () => subjects().reduce((t, s) => { const e = logOf(s); return { a: t.a + e.a, c: t.c + e.c }; }, { a: 0, c: 0 });
   const played = () => (store.playedDay && store.playedDay.day === today() ? store.playedDay.ids : []);
-  const games = () => Hub.appList().filter(a => a.section === "games");
+  const games = () => Hub.appList().filter(a => a.section !== "learning");   // Games and Build
 
   // the challenges a day can pick from; "counter" ones count up from where the counter was this morning
   function catalogue(){
@@ -31,7 +31,7 @@
       { id: "strike", icon: "🎳", text: "Bowl a strike", goal: 1, href: "#/games/bowling", counter: "bowlStrikes" },
       { id: "soccer", icon: "⚽", text: "Win a Blox Soccer match", goal: 1, href: "#/games/soccer", counter: "soccerWins" },
       { id: "dunk", icon: "🏀", text: "Slam dunk in Blox Hoops", goal: 1, href: "#/games/hoops", counter: "hoopsDunks" },
-      { id: "build", icon: "🧱", text: "Place 30 blocks in Block World", goal: 30, href: "#/games/blocks", counter: "blocksPlaced" },
+      { id: "build", icon: "🧱", text: "Place 30 blocks in Block World", goal: 30, href: "#/build/blocks", counter: "blocksPlaced" },
       { id: "parkour", icon: "🧗", text: "Reach the trophy in Parkour Run", goal: 1, href: "#/games/parkour", counter: "parkourWins" },
       { id: "pong", icon: "🏓", text: "Play a game of Ping Pong 3D", goal: 1, href: "#/games/ping-pong", counter: "pongPlayed" },
       { id: "raceoff", icon: "🚙", text: "Finish a Race Off level", goal: 1, href: "#/games/raceoff", counter: "raceoffWins" },
@@ -41,7 +41,7 @@
       { id: "chess", icon: "♟️", text: "Beat BloxBot at chess", goal: 1, href: "#/games/chess", counter: "chessWins" },
       { id: "three", icon: "🎮", text: "Play 3 different games", goal: 3, href: "#/games", now: () => played().filter(id => games().some(g => g.id === id)).length }
     ];
-    games().forEach(g => play.push({ id: "play:" + g.id, icon: g.icon, text: `Play ${g.title}`, goal: 1, href: `#/games/${g.id}`, now: () => played().includes(g.id) ? 1 : 0 }));
+    games().forEach(g => play.push({ id: "play:" + g.id, icon: g.icon, text: `Play ${g.title}`, goal: 1, href: `#/${g.section}/${g.id}`, now: () => played().includes(g.id) ? 1 : 0 }));
     return { learn, play };
   }
 

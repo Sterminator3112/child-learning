@@ -125,7 +125,7 @@
     }
 
     const learn = apps.filter(a => a.section === "learning" && a.stat && !(window.Notebook && Notebook.subjects.some(s => s.id === a.id)) && a.id !== "typing");
-    const games = apps.filter(a => a.section === "games" && a.stat);
+    const games = apps.filter(a => a.section !== "learning" && a.stat);   // Games and Build
     const lines = [...learn, ...games];
     html += `<section class="gu-card">
       <h2>🏆 Games and trophies <small>${trophies} of ${trophiesAll} trophies</small></h2>

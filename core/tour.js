@@ -1,9 +1,9 @@
 /* The presenter: Robo 🤖 shows a newcomer around.
-     Guided tour   Robo points at each part of the home screen in turn (players, Learning, Games, the daily
+     Guided tour   Robo points at each part of the home screen in turn (players, Learning, Games, Build, the daily
                    challenges, search, the shop, the grown-ups page) with a spotlight and a speech bubble.
      Show reel     then, if you like, Robo presents every app one by one, full screen: a big spinning icon,
                    what it is, your best and trophies, and a "Try it" button. It moves on by itself (or use
-                   ◀ ▶, Space to pause), with chapters to jump to: Learning, then each group of games.
+                   ◀ ▶, Space to pause), with chapters to jump to: Learning, each group of games, then Build.
    Robo can read it all out loud (🔊). He is always on the home screen as a small banner (he never pops up by
    himself): on a first visit he offers the tour, after that the tour or the show reel; ✕ hides him until the
    next visit. The "🎬 Meet the apps" link at the bottom starts it any time too.
@@ -46,10 +46,11 @@
   /* ---------------- the guided tour of the home screen ---------------- */
   const count = s => Hub.appList().filter(a => a.section === s).length;
   const STEPS = [
-    { text: () => `Hi${store.name ? " " + store.name : ""}! I'm Robo, your guide. Learn & Play has ${count("learning")} learning apps and ${count("games")} games. Let me show you around!` },
+    { text: () => `Hi${store.name ? " " + store.name : ""}! I'm Robo, your guide. Learn & Play has ${count("learning")} learning apps, ${count("games")} games and ${count("build")} building worlds. Let me show you around!` },
     { at: "#profileRow", text: () => "Everyone in the family can have their own player, with their own coins, trophies and progress. Tap a name to switch, or ➕ to add one." },
     { at: ".door.learning", text: () => `📚 Learning: ${count("learning")} subjects for 5th grade in Zug. Maths, English, German, French, NMG, music, typing and even quantum physics. Every answer is explained, and there's a race or a 3D adventure above the questions!` },
-    { at: ".door.games", text: () => `🎮 Games: ${count("games")} of them! Racing, sports, adventures, arcade classics, building games and brain games.` },
+    { at: ".door.games", text: () => `🎮 Games: ${count("games")} of them! Racing, sports, adventures, arcade classics, growing games and brain games.` },
+    { at: ".door.build", text: () => `🏗️ Build: walk around in 3D and build! Dig and build in ⛏️ Block World, or pop up whole houses, castles and rockets in 🏡 Dream Builder.` },
     { at: "#dailyCard", text: () => "📅 Every day there are three new challenges. Finish them for 🪙 coins, and play every day to keep your 🔥 streak going." },
     { at: "#appSearch", text: () => "🔎 Looking for something? Type here to find any game or subject straight away." },
     { at: '.home-grownups a[href="#/shop"]', text: () => "🛍️ Spend your coins in the Shop on new looks: pool cloths and bowling balls." },
@@ -117,6 +118,7 @@
     Hub.CATEGORIES.forEach(c => { const apps = c.ids.map(id => list.find(a => a.id === id)).filter(Boolean); apps.forEach(a => listed.add(a.id)); if (apps.length) chs.push({ title: c.title, apps }); });
     const rest = list.filter(a => a.section === "games" && !listed.has(a.id));
     if (rest.length) chs.push({ title: "✨ More games", apps: rest });
+    chs.push({ title: "🏗️ Build", apps: list.filter(a => a.section === "build") });
     return chs;
   }
   function reel(i){

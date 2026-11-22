@@ -1,30 +1,30 @@
-/* Block World fills the screen (dvh skips the phone browser's address bar; plain vh is for older browsers). */
-#blOverlay .game-box{
+/* Block World (and Dream Builder, which shares it) fills the screen (dvh skips the phone browser's address bar; plain vh is for older browsers). */
+.bl-screen .game-box{
   width: min(100%, calc((100vh - 110px) * 16 / 9));
   width: min(100%, calc((100dvh - 110px) * 16 / 9));
 }
 @media (pointer: coarse){
-  #blOverlay .game-box{
+  .bl-screen .game-box{
     width: min(100%, calc((100vh - 170px) * 16 / 9));
     width: min(100%, calc((100dvh - 170px) * 16 / 9));
   }
 }
 /* short screens, like a phone held sideways: the slimmer bars leave more room for the game */
 @media (max-height: 500px){
-  #blOverlay .game-box{
+  .bl-screen .game-box{
     width: min(100%, calc((100vh - 100px) * 16 / 9));
     width: min(100%, calc((100dvh - 100px) * 16 / 9));
   }
 }
-#blCanvas:focus{ outline: none; }
-#blCanvas{
+.bl-canvas:focus{ outline: none; }
+.bl-canvas{
   display: block; width: 100%; aspect-ratio: 16 / 9; height: auto;
   border-radius: 12px; border: 2px solid rgba(255,255,255,0.25);
   background: #c7e1fa; touch-action: none; cursor: crosshair;
   user-select: none; -webkit-user-select: none;
 }
 /* the plain backup picture is small, so it's stretched up without blurring */
-#blCanvas.soft{ image-rendering: pixelated; }
+.bl-canvas.soft{ image-rendering: pixelated; }
 /* a blue wash when your eyes are under water */
 .bl-water{ position: absolute; inset: 0; border-radius: 12px; background: rgba(20,70,190,0.38); pointer-events: none; }
 .bl-panel{ background: rgba(20,45,70,0.62); }
@@ -143,4 +143,28 @@
   .bl-book{ max-height: 96px; min-width: 0; max-width: calc(9 * 32px); }
   .bl-book-list{ flex-direction: row; flex-wrap: wrap; }
   .bl-inv-box{ padding: 6px 8px; gap: 5px; }
+}
+/* Dream Builder's list of ready-made buildings, over the picture */
+.bl-builds{
+  position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 12px; border-radius: 12px; background: rgba(20,45,70,0.72); color: #fff; overflow-y: auto;
+}
+.bl-builds[hidden]{ display: none; }
+.bl-builds-title{ font: 800 clamp(20px, 3.5vw, 30px) "Bricolage Grotesque", sans-serif; text-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+.bl-builds-grid{ display: grid; grid-template-columns: repeat(4, minmax(0, 120px)); gap: 8px; }
+.bl-build{
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px;
+  border: 3px solid #373737; border-right-color: #ddd; border-bottom-color: #ddd; border-radius: 6px;
+  background: #c6c6c6; color: #222; font: 800 14px "Karla", sans-serif; cursor: pointer;
+}
+.bl-build:hover, .bl-build:focus-visible{ background: #e8e8e8; outline: 3px solid #ffe14d; }
+.bl-build-icon{ font-size: 30px; line-height: 1.1; }
+.bl-build .bl-key{ position: absolute; top: 2px; left: 5px; font: 700 11px "IBM Plex Mono", monospace; color: #555; }
+.bl-builds-row{ display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.big-buttons .bl-build{ padding: 12px 8px; font-size: 16px; }
+@media (max-width: 640px), (max-height: 520px){
+  .bl-builds{ gap: 6px; padding: 6px; }
+  .bl-builds-grid{ grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; width: 100%; max-width: 480px; }
+  .bl-build{ padding: 4px 2px; font-size: 11px; }
+  .bl-build-icon{ font-size: 22px; }
 }

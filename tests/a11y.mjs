@@ -28,7 +28,7 @@ async function scan(hash){
 
 await page.goto(BASE, { waitUntil: "load" });
 const apps = await page.evaluate(() => [...document.querySelectorAll("#homeView a.door")].length && Hub.appList().map(a => `#/${a.section}/${a.id}`));
-for (const h of ["#/", "#/learning", "#/games", "#/grownups", "#/shop", ...apps]) await scan(h);
+for (const h of ["#/", "#/learning", "#/games", "#/build", "#/grownups", "#/shop", ...apps]) await scan(h);
 
 // the keyboard alone can get from the home screen into the Learning list
 await page.goto(BASE, { waitUntil: "load" }); await page.waitForTimeout(200);

@@ -3,7 +3,7 @@
    so every game and subject opens offline straight away, not only the ones played before.
    After that every file is fetched fresh from the network when there is one (so updates show up straight
    away), and the copy is refreshed; offline, the kept copy is used. */
-const CACHE = "learn-and-play-v2";
+const CACHE = "learn-and-play-v3";
 
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
